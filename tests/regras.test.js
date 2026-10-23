@@ -1,16 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { MESAS, mesaValida } from '../lib/mesas.js';
+import { lerMesaPessoa, mesaValida } from '../lib/mesas.js';
 import { itensEntregaveis, podeMudar, proximosEstados } from '../lib/estados.js';
 import { totalConta, validarPedido } from '../lib/conta.js';
 
 describe('mesas', () => {
-  it('tem 22 mesas e não tem a 9', () => {
-    expect(MESAS).toHaveLength(22);
-    expect(mesaValida(9)).toBe(false);
-    expect(mesaValida(8)).toBe(true);
-    expect(mesaValida(10)).toBe(true);
-    expect(mesaValida(23)).toBe(true);
-    expect(mesaValida(24)).toBe(false);
+  it('aceita qualquer número de 1 a 999 (mesas emprestadas do vizinho)', () => {
+    expect(mesaValida(9)).toBe(true);
+    expect(mesaValida(24)).toBe(true);
+    expect(mesaValida(0)).toBe(false);
+    expect(mesaValida(1000)).toBe(false);
+    expect(mesaValida(2.5)).toBe(false);
+    expect(mesaValida(null)).toBe(false);
+  });
+
+  it('lê o campo único "mesa/pessoa"', () => {
+    expect(lerMesaPessoa('12/joao')).toEqual({ mesa: 12, pessoa: 'joao' });
+    expect(lerMesaPessoa(' 14 / Carlos Silva ')).toEqual({ mesa: 14, pessoa: 'Carlos Silva' });
+    expect(lerMesaPessoa('12')).toEqual({ mesa: 12, pessoa: null });
+    expect(lerMesaPessoa('12/')).toEqual({ mesa: 12, pessoa: null });
+  });
+
+  it('recusa campo vazio, sem número ou fora do limite', () => {
+    expect(lerMesaPessoa('').erro).toBeDefined();
+    expect(lerMesaPessoa('joao').erro).toBeDefined();
+    expect(lerMesaPessoa('/joao').erro).toBeDefined();
+    expect(lerMesaPessoa('0/joao').erro).toBeDefined();
+    expect(lerMesaPessoa('1000').erro).toBeDefined();
   });
 });
 
@@ -40,7 +55,7 @@ describe('conta', () => {
     expect(totalConta(itens)).toBe(5200);
   });
   it('valida o pedido', () => {
-    expect(validarPedido(9, [{ quantidade: 1 }])).not.toBeNull();
+    expect(validarPedido(null, [{ quantidade: 1 }])).not.toBeNull();
     expect(validarPedido(12, [])).not.toBeNull();
     expect(validarPedido(12, [{ quantidade: 0 }])).not.toBeNull();
     expect(validarPedido(12, [{ quantidade: 2 }])).toBeNull();

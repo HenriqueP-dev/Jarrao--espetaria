@@ -79,6 +79,8 @@ O restaurante possui mesas numeradas de 1 a 8 e de 10 a 23. Não existe mesa nú
 
 São 22 mesas numeradas nesse conjunto.
 
+Atualização (decisão do desenvolvedor, 2026-10-23): às vezes o restaurante empresta mesas do vizinho, então o número da mesa passa a ser livre (1 a 999), digitado pelo garçom. Ver `docs/DECISOES.md`.
+
 As mesas físicas podem mudar de posição no estabelecimento. Portanto, o sistema deve identificar as mesas por seu número lógico, independentemente de onde estiverem fisicamente.
 
 ### 4.3 Processo atual de registro dos pedidos

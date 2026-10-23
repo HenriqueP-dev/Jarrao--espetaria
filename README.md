@@ -17,7 +17,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 ## Como rodar
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql` e `supabase/migrations/004_cardapio_real.sql`.
+2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql` `supabase/migrations/004_cardapio_real.sql` e `supabase/migrations/005_mesas_livres.sql`.
 3. Copie `.env.example` para `.env.local` e preencha a URL e a chave `anon` (Project Settings → API).
 4. Instale e rode:
    ```
@@ -30,7 +30,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 Testes das regras: `npm test`.
 
 ## Telas
-- `/garcom` — escolhe mesa, pessoa (opcional) e itens.
+- `/garcom` — digita a mesa e, se quiser, a pessoa (`12` ou `12/João`) e escolhe os itens.
 - `/cozinha`, `/churrasqueira` — itens do setor, em tempo real (Em preparo / Pronto).
 - `/mesas` — contas abertas, consumo, entrega, cancelamento e histórico.
 - `/caixa` — contas abertas, pagamentos (dinheiro, débito, crédito) e fechamento da conta.

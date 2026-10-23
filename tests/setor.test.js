@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   agruparFichas,
+  agruparPorSetor,
   agruparPorConta,
-  contarPorAba,
+  faltaFazer,
   faseDaFicha,
+  fichasPorColuna,
   filtrarItens,
   itensParaAvancar,
   minutosDesde,
@@ -24,14 +26,14 @@ const item = (extra) => ({
   ...extra,
 });
 
-describe('contarPorAba', () => {
-  it('conta unidades, não linhas', () => {
+describe('faltaFazer', () => {
+  it('conta unidades (não linhas) de novo e em preparo, sem os prontos', () => {
     const itens = [
       item({ quantidade: 3 }),
       item({ estado: 'em_preparo', quantidade: 2 }),
-      item({ estado: 'pronto' }),
+      item({ estado: 'pronto', quantidade: 9 }),
     ];
-    expect(contarPorAba(itens)).toEqual({ todos: 6, novo: 3, em_preparo: 2, pronto: 1 });
+    expect(faltaFazer(itens)).toBe(5);
   });
 });
 
@@ -41,16 +43,15 @@ describe('filtrarItens', () => {
     item({ nome_produto: 'Jantinha', contas: { mesa_numero: 12 }, estado: 'pronto' }),
   ];
 
-  it('filtra por aba', () => {
-    expect(filtrarItens(itens, 'pronto', '')).toHaveLength(1);
-    expect(filtrarItens(itens, 'todos', '')).toHaveLength(2);
+  it('sem busca devolve tudo', () => {
+    expect(filtrarItens(itens, '')).toHaveLength(2);
   });
 
   it('busca sem diferenciar acento e maiúscula, em produto, mesa e observação', () => {
-    expect(filtrarItens(itens, 'todos', 'JANTINHA')).toHaveLength(1);
-    expect(filtrarItens(itens, 'todos', 'mesa 12')).toHaveLength(1);
-    expect(filtrarItens(itens, 'todos', 'bem pássado')).toHaveLength(1);
-    expect(filtrarItens(itens, 'todos', 'picanha')).toHaveLength(0);
+    expect(filtrarItens(itens, 'JANTINHA')).toHaveLength(1);
+    expect(filtrarItens(itens, 'mesa 12')).toHaveLength(1);
+    expect(filtrarItens(itens, 'bem pássado')).toHaveLength(1);
+    expect(filtrarItens(itens, 'picanha')).toHaveLength(0);
   });
 });
 
@@ -66,31 +67,47 @@ describe('agruparPorConta', () => {
     expect(grupos[0].itens).toHaveLength(2);
     expect(grupos[0].maisAntigo).toBe('2026-10-22T18:50:00Z');
   });
+
+  it('o tempo da ficha ignora itens já prontos quando ainda há o que fazer', () => {
+    const grupos = agruparPorConta([
+      item({ estado: 'pronto', criado_em: '2026-10-22T18:00:00Z' }),
+      item({ estado: 'novo', criado_em: '2026-10-22T19:00:00Z' }),
+    ]);
+    expect(grupos[0].maisAntigo).toBe('2026-10-22T19:00:00Z');
+  });
 });
 
-describe('ficha única por mesa', () => {
+describe('ficha única por mesa e Kanban', () => {
   const itens = [
     item({ conta_id: 'a', contas: { mesa_numero: 1 }, nome_produto: 'Jantinha', estado: 'novo' }),
     item({ conta_id: 'a', contas: { mesa_numero: 1 }, nome_produto: 'Espeto', estado: 'pronto' }),
     item({ conta_id: 'b', contas: { mesa_numero: 2 }, nome_produto: 'Espeto', estado: 'em_preparo' }),
+    item({ conta_id: 'c', contas: { mesa_numero: 3 }, nome_produto: 'Batata', estado: 'pronto' }),
   ];
 
-  it('mostra todos os itens da mesa mesmo quando só um casa com a aba', () => {
-    const fichas = agruparFichas(itens, 'novo', '');
-    expect(fichas).toHaveLength(1);
-    expect(fichas[0].itens).toHaveLength(2);
-  });
-
-  it('a busca acha a mesa e mantém a ficha inteira', () => {
-    const fichas = agruparFichas(itens, 'todos', 'jantinha');
+  it('a ficha mostra todos os itens da mesa, mesmo achando só um na busca', () => {
+    const fichas = agruparFichas(itens, 'jantinha');
     expect(fichas.map((f) => f.mesa)).toEqual([1]);
     expect(fichas[0].itens).toHaveLength(2);
   });
 
-  it('descobre a fase da ficha', () => {
-    expect(faseDaFicha([item({}), item({})])).toBe('novo');
+  it('descobre a fase pelo item menos adiantado', () => {
+    expect(faseDaFicha([item({}), item({ estado: 'pronto' })])).toBe('novo');
+    expect(faseDaFicha([item({ estado: 'em_preparo' }), item({ estado: 'pronto' })])).toBe('em_preparo');
     expect(faseDaFicha([item({ estado: 'pronto' })])).toBe('pronto');
-    expect(faseDaFicha([item({}), item({ estado: 'pronto' })])).toBe('em_preparo');
+  });
+
+  it('cada mesa cai em uma única coluna', () => {
+    const col = fichasPorColuna(itens, '');
+    expect(col.novo.map((f) => f.mesa)).toEqual([1]);
+    expect(col.em_preparo.map((f) => f.mesa)).toEqual([2]);
+    expect(col.pronto.map((f) => f.mesa)).toEqual([3]);
+  });
+
+  it('a busca esvazia as colunas que não casam', () => {
+    const col = fichasPorColuna(itens, 'batata');
+    expect(col.novo).toHaveLength(0);
+    expect(col.pronto.map((f) => f.mesa)).toEqual([3]);
   });
 
   it('a ação da ficha só muda os itens que ainda podem mudar', () => {
@@ -115,5 +132,26 @@ describe('tempo de espera', () => {
     expect(urgencia(9)).toBe('normal');
     expect(urgencia(10)).toBe('atencao');
     expect(urgencia(20)).toBe('critico');
+  });
+});
+
+describe('grupos da tela Mesas', () => {
+  const itens = [
+    item({ id: 1, setor: 'garcom', estado: 'novo' }),
+    item({ id: 2, setor: 'churrasqueira', estado: 'pronto' }),
+    item({ id: 3, setor: 'cozinha', estado: 'em_preparo' }),
+    item({ id: 4, setor: 'churrasqueira', estado: 'novo' }),
+    item({ id: 5, setor: 'novo_setor', estado: 'novo' }),
+  ];
+
+  it('separa em bebidas, espetos e cozinha, mantendo a ordem e sem perder itens', () => {
+    const g = agruparPorSetor(itens);
+    expect(g.map((x) => x.id)).toEqual(['bebidas', 'espetos', 'cozinha', 'outros']);
+    expect(g.find((x) => x.id === 'espetos').itens.map((i) => i.id)).toEqual([2, 4]);
+    expect(g.flatMap((x) => x.itens)).toHaveLength(itens.length);
+  });
+
+  it('omite grupos vazios', () => {
+    expect(agruparPorSetor([item({ setor: 'cozinha' })]).map((x) => x.id)).toEqual(['cozinha']);
   });
 });

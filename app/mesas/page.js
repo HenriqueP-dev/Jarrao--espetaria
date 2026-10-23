@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
-import { MESAS } from '../../lib/mesas';
 import { ROTULOS, itensEntregaveis } from '../../lib/estados';
 import { totalConta, formatarReais } from '../../lib/conta';
+import { agruparPorSetor } from '../../lib/setor';
 
 export default function Mesas() {
   const [abertas, setAbertas] = useState({}); // mesa -> conta
@@ -69,17 +69,22 @@ export default function Mesas() {
     return r;
   }, [abertas, todosItens]);
 
-  const qtdAbertas = Object.keys(abertas).length;
+  // Só existem as mesas com conta aberta; o número é livre (mesas emprestadas do vizinho).
+  const mesasAbertas = Object.keys(abertas).map(Number).sort((x, y) => x - y);
+  const qtdAbertas = mesasAbertas.length;
   const qtdProntos = Object.values(resumo).reduce((s, r) => s + r.prontos, 0);
   const qtdAndamento = Object.values(resumo).reduce((s, r) => s + r.emAndamento, 0);
 
   const itens = abertas[mesa] ? todosItens.filter((i) => i.conta_id === abertas[mesa].id) : [];
-  const paraEntregar = itensEntregaveis(itens);
+  const grupos = agruparPorSetor(itens);
 
-  // Um botão só: entrega tudo que está pronto (churrasqueira, cozinha) e as bebidas.
-  async function entregarTudo() {
+  // Cada grupo (bebidas, espetos, cozinha) tem o seu botão: entrega o que já
+  // está pronto naquele grupo (e as bebidas, que não passam por preparo).
+  async function entregar(grupo) {
     const respostas = await Promise.all(
-      paraEntregar.map((i) => supabase.rpc('mudar_estado_item', { p_item: i.id, p_novo: 'entregue' }))
+      itensEntregaveis(grupo.itens).map((i) =>
+        supabase.rpc('mudar_estado_item', { p_item: i.id, p_novo: 'entregue' })
+      )
     );
     const falha = respostas.find((r) => r.error);
     setErro(falha ? falha.error.message : null);
@@ -95,10 +100,7 @@ export default function Mesas() {
       <div className="kpis">
         <div className="kpi">
           <span className="mudo">Contas abertas</span>
-          <b>
-            {qtdAbertas}
-            <small>/{MESAS.length}</small>
-          </b>
+          <b>{qtdAbertas}</b>
         </div>
         <div className="kpi">
           <span className="mudo">Em preparo</span>
@@ -110,25 +112,20 @@ export default function Mesas() {
         </div>
       </div>
 
+      {!qtdAbertas && <p className="mudo">Nenhuma conta aberta. As mesas aparecem aqui quando o primeiro pedido é lançado.</p>}
       <div className="grade-mesas">
-        {MESAS.map((n) => {
+        {mesasAbertas.map((n) => {
           const r = resumo[n];
           return (
             <button
               key={n}
-              className={`mesa-card ${r ? 'aberta' : ''} ${r?.prontos ? 'tem-pronto' : ''} ${mesa === n ? 'sel' : ''}`}
+              className={`mesa-card aberta ${r.prontos ? 'tem-pronto' : ''} ${mesa === n ? 'sel' : ''}`}
               aria-pressed={mesa === n}
               onClick={() => setMesa(n)}
             >
               <span className="mesa-num">{n}</span>
-              {r ? (
-                <>
-                  <span className="mesa-valor">{formatarReais(r.total)}</span>
-                  {r.prontos > 0 && <span className="mesa-aviso">{r.prontos} pronto(s)</span>}
-                </>
-              ) : (
-                <span className="mudo">livre</span>
-              )}
+              <span className="mesa-valor">{formatarReais(r.total)}</span>
+              {r.prontos > 0 && <span className="mesa-aviso">{r.prontos} pronto(s)</span>}
             </button>
           );
         })}
@@ -138,25 +135,37 @@ export default function Mesas() {
         <>
           <h2>Mesa {mesa}</h2>
           {!abertas[mesa] && <p className="mudo">Sem conta aberta.</p>}
-          {abertas[mesa] && (
-            <button className="entregar" onClick={entregarTudo} disabled={!paraEntregar.length}>
-              {paraEntregar.length
-                ? `Entregue (${paraEntregar.reduce((s, i) => s + i.quantidade, 0)} itens)`
-                : 'Nada pronto para entregar'}
-            </button>
-          )}
-          {itens.map((i) => (
-            <div key={i.id} className={`card linha espaco ${i.estado === 'pronto' ? 'card-pronto' : ''}`}>
-              <div>
-                {i.quantidade}x {i.nome_produto}
-                {i.pessoa && <> ({i.pessoa})</>}
-                {i.detalhe && <span className="mudo"> · {i.detalhe}</span>} — {formatarReais(i.preco_centavos * i.quantidade)}{' '}
-                <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
-              </div>
-              {['novo', 'em_preparo', 'pronto'].includes(i.estado) && (
-                <button className="perigo" onClick={() => mudar(i.id, 'cancelado')}>Cancelar</button>
-              )}
+          {grupos.length > 0 && (
+            <div className="entregas" role="group" aria-label="Entregar">
+              {grupos.map((g) => {
+                const qtd = itensEntregaveis(g.itens).reduce((soma, i) => soma + i.quantidade, 0);
+                return (
+                  <button key={g.id} className="entregar" onClick={() => entregar(g)} disabled={!qtd}>
+                    <small>Entregue</small>
+                    <b>{g.rotulo}</b>
+                    <span className="n">{qtd}</span>
+                  </button>
+                );
+              })}
             </div>
+          )}
+          {grupos.map((g) => (
+            <section key={g.id} className="grupo">
+              <h3 className="grupo-titulo">{g.rotulo}</h3>
+              {g.itens.map((i) => (
+                <div key={i.id} className={`card linha espaco ${i.estado === 'pronto' ? 'card-pronto' : ''}`}>
+                  <div>
+                    {i.quantidade}x {i.nome_produto}
+                    {i.pessoa && <> ({i.pessoa})</>}
+                    {i.detalhe && <span className="mudo"> · {i.detalhe}</span>} — {formatarReais(i.preco_centavos * i.quantidade)}{' '}
+                    <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
+                  </div>
+                  {['novo', 'em_preparo', 'pronto'].includes(i.estado) && (
+                    <button className="perigo" onClick={() => mudar(i.id, 'cancelado')}>Cancelar</button>
+                  )}
+                </div>
+              ))}
+            </section>
           ))}
           {abertas[mesa] && (
             <p><strong>Total registrado: {formatarReais(totalConta(itens))}</strong></p>

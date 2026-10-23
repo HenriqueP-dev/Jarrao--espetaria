@@ -121,17 +121,11 @@ input::placeholder { color: var(--cinza); }
 .espaco { justify-content: space-between; }
 .mudo { color: var(--cinza); font-size: .9rem; }
 
-/* Mesas (seleção no garçom) */
-.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
-.mesa {
-  padding: 14px 0;
-  font-size: 1.2rem;
-  text-align: center;
-  background: var(--superficie);
-  color: var(--texto);
-  border: 2px solid var(--campo);
-}
-.mesa.sel { background: var(--destaque); border-color: var(--destaque); color: #fff; }
+/* Garçom: campo único "mesa/pessoa" */
+.rotulo-campo { display: block; margin: 6px 0 4px; font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--cinza); }
+.campo-mesa { width: 100%; min-height: 56px; font-size: 1.5rem; font-weight: 700; }
+.campo-mesa[aria-invalid='true'] { border-color: var(--vermelho); }
+.texto-erro { margin: 4px 0 0; font-size: .85rem; font-weight: 700; color: var(--vermelho); }
 
 /* Avisos */
 .aviso, .erro, .ok {
@@ -159,9 +153,6 @@ input::placeholder { color: var(--cinza); }
 .tag.pronto { background: var(--verde); color: #fff; }
 .tag.entregue { background: #ece5da; color: var(--cinza); }
 .tag.cancelado { background: var(--vermelho); color: #fff; text-decoration: line-through; }
-
-.abas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-.abas button { min-height: 38px; padding: 6px 12px; font-size: .9rem; }
 
 /* Tela inicial */
 .atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
@@ -202,64 +193,88 @@ input::placeholder { color: var(--cinza); }
   background: var(--amarelo);
   color: var(--preto);
   font-weight: 800;
-  padding: 6px 12px;
+  font-size: .85rem;
+  padding: 3px 10px;
   border-radius: 8px;
   white-space: nowrap;
 }
-.busca { width: 100%; margin-bottom: 10px; }
+.busca { width: 100%; min-height: 36px; padding: 4px 10px; font-size: .85rem; margin-bottom: 6px; }
 
-.abas-grandes {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  padding: 6px;
-  margin-bottom: 16px;
+/* Quadro Kanban: três colunas lado a lado. No celular as colunas rolam para o
+   lado (cada uma ocupa quase a tela) em vez de trocar de página.
+   Compacto de propósito: textos e espaços pequenos para caber mais fichas na
+   tela. Só os botões de ação continuam grandes (mão suja, tela com gordura). */
+main:has(.kanban) { max-width: 1700px; padding: 8px; }
+main:has(.kanban) h1 { margin: 0; font-size: 1.4rem; }
+.kanban {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+}
+.coluna {
+  flex: 0 0 88%;
+  min-width: 0;
+  scroll-snap-align: start;
   background: #efe9df;
-  border-radius: 12px;
+  border-radius: 10px;
+  padding: 6px;
 }
-.abas-grandes button {
-  background: transparent;
-  color: var(--texto);
-  min-height: 52px;
-  padding: 8px 4px;
-  font-size: 1rem;
+.coluna-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  background: var(--superficie);
+  border-top: 4px solid var(--destaque);
 }
-.abas-grandes button.on { background: var(--destaque); color: #fff; }
-.abas-grandes .num {
-  display: inline-block;
+.coluna.em_preparo .coluna-titulo { border-top-color: var(--amarelo); }
+.coluna.pronto .coluna-titulo { border-top-color: var(--verde); }
+.coluna-titulo .num {
   min-width: 24px;
-  margin-left: 2px;
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: 99px;
-  background: rgba(0, 0, 0, .1);
+  font-size: .85rem;
+  text-align: center;
+  background: #ece5da;
 }
-.abas-grandes button.on .num { background: rgba(255, 255, 255, .25); }
+.coluna-vazia { text-align: center; padding: 12px 0; font-size: .75rem; }
+.coluna .ticket { margin-bottom: 6px; }
+
+@media (min-width: 900px) {
+  .kanban { overflow-x: visible; scroll-snap-type: none; }
+  .coluna { flex: 1 1 0; }
+}
 
 .ticket {
   background: var(--superficie);
-  border: 3px solid var(--borda);
-  border-left-width: 10px;
-  border-radius: var(--raio);
-  padding: 14px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+  border: 2px solid var(--borda);
+  border-left-width: 6px;
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
 }
 .ticket.atencao, .ticket.critico { border-color: #e0a800; }
 .ticket.pronto { border-color: var(--verde); }
 .ticket-topo {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-  border-bottom: 2px solid var(--borda);
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--borda);
 }
-.ticket-mesa { margin: 0; font-size: 2.4rem; line-height: 1; color: var(--texto); }
-.ticket-tempo { text-align: right; display: flex; flex-direction: column; }
+.ticket-mesa { margin: 0; font-size: 1.3rem; line-height: 1; color: var(--texto); }
+.ticket-tempo { display: flex; align-items: center; gap: 6px; font-size: .7rem; }
 .ticket-tempo b {
-  font-size: 1.15rem;
-  padding: 2px 10px;
+  font-size: .8rem;
+  padding: 0 7px;
   border-radius: 6px;
   background: #ece5da;
 }
@@ -271,42 +286,111 @@ input::placeholder { color: var(--cinza); }
 .ticket-item {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 8px;
   cursor: pointer;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 4px 6px;
+  margin-bottom: 4px;
   background: var(--fundo);
-  border: 2px solid var(--borda);
-  border-radius: 10px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
 }
 .ticket-item.pronto { background: #eef7ee; border-color: var(--verde); cursor: default; }
 .ticket-item.pronto .ticket-nome { text-decoration: line-through; color: var(--cinza); }
 .ticket-corpo { flex: 1; min-width: 0; }
-.marcar { width: 36px; height: 36px; min-height: 0; flex: none; accent-color: var(--verde); }
-.ticket-nome { font-size: 1.2rem; font-weight: 700; }
-.ticket-nome b { font-size: 1.4rem; color: var(--destaque); }
+.marcar { width: 26px; height: 26px; min-height: 0; flex: none; margin: 0; accent-color: var(--verde); }
+.ticket-nome { font-size: .85rem; font-weight: 700; line-height: 1.25; }
+.ticket-nome b { font-size: .95rem; color: var(--destaque); }
+.ticket .mudo { font-size: .7rem; }
+.ticket .tag { padding: 0 7px; font-size: .65rem; }
 .obs {
-  margin-top: 8px;
-  padding: 8px 10px;
-  border: 2px dashed var(--destaque);
+  margin-top: 2px;
+  padding: 2px 6px;
+  border: 1px dashed var(--destaque);
   background: var(--destaque-claro);
-  border-radius: 8px;
+  border-radius: 6px;
+  font-size: .75rem;
   font-weight: 700;
 }
 
-/* Um único botão grande por ficha */
-.ticket-acoes { margin-top: 14px; }
+/* Um único botão por ficha: o único elemento grande do quadro */
+.ticket-acoes { margin-top: 6px; }
 .ticket-acoes button {
   width: 100%;
-  min-height: 76px;
-  font-size: 1.4rem;
+  min-height: 52px;
+  font-size: 1.05rem;
   letter-spacing: .02em;
-  border-radius: 14px;
+  border-radius: 10px;
 }
-.ticket-acoes .mudo { display: block; text-align: center; padding: 12px 0; font-size: 1.05rem; }
+.ticket-acoes .mudo { display: block; text-align: center; padding: 4px 0; font-size: .75rem; }
+
+/* Garçom: cardápio de um lado, pedido do cliente do outro (folha no celular) */
+.garcom-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 12px; }
+.busca-produto { width: 100%; margin-bottom: 8px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 6px; margin-bottom: 6px; }
+.chips::-webkit-scrollbar { display: none; }
+.chips button {
+  flex: none;
+  min-height: 36px;
+  padding: 4px 14px;
+  border-radius: 99px;
+  font-size: .85rem;
+  white-space: nowrap;
+  background: var(--superficie);
+  color: var(--texto);
+  border: 2px solid var(--campo);
+}
+.chips button.on { background: var(--destaque); border-color: var(--destaque); color: #fff; }
+.resultados { margin: 4px 0 6px; font-size: .9rem; font-weight: 700; }
+.produtos { list-style: none; margin: 0; padding: 0; background: var(--superficie); border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; }
+.produto { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--borda); }
+.produto:last-child { border-bottom: 0; }
+.produto.tem { background: var(--destaque-claro); }
+.produto-nome { display: flex; flex-direction: column; min-width: 0; font-weight: 600; }
+.no-pedido { color: var(--destaque); }
+button.mais { flex: none; width: 44px; padding: 0; font-size: 1.6rem; line-height: 1; border-radius: 50%; }
+
+.pedido-painel { background: var(--superficie); border: 2px solid var(--destaque); border-radius: 12px; padding: 12px; }
+.pedido-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.pedido-topo h2 { margin: 0; font-size: 1.3rem; color: var(--destaque); }
+.pedido-painel .vazio { margin: 8px 0; }
+.linha-pedido { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px solid var(--borda); }
+.lp-topo { display: flex; justify-content: space-between; gap: 8px; }
+.lp-controles { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stepper { display: flex; align-items: center; gap: 10px; }
+.stepper b { min-width: 24px; text-align: center; font-size: 1.1rem; }
+.stepper button { width: 44px; padding: 0; }
+button.leve { border: 0; background: transparent; color: var(--destaque); min-height: 36px; padding: 4px 6px; font-size: .85rem; }
+.pedido-total { display: flex; justify-content: space-between; margin-top: 4px; padding-top: 10px; border-top: 2px solid var(--texto); font-size: 1.3rem; }
+.enviar-painel { margin-top: 10px; }
+
+@media (max-width: 899px) {
+  .pedido-painel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    visibility: hidden;
+    transform: translateY(105%);
+    transition: transform .2s, visibility .2s;
+  }
+  .pedido-painel.aberto { visibility: visible; transform: none; }
+  .fundo-painel { position: fixed; inset: 0; z-index: 20; background: rgba(0, 0, 0, .4); }
+}
+@media (min-width: 900px) {
+  .garcom-layout { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
+  .pedido-painel { position: sticky; top: 84px; }
+  .fechar-painel, .barra-fixa { display: none; }
+  main:has(.barra-fixa) { padding-bottom: 16px; }
+}
 
 /* Garçom: barra fixa de envio */
-main:has(.barra-fixa) { padding-bottom: 104px; }
+main:has(.barra-fixa) { padding-bottom: 96px; }
 .barra-fixa {
   position: fixed;
   left: 0;
@@ -326,20 +410,9 @@ main:has(.barra-fixa) { padding-bottom: 104px; }
   justify-content: space-between;
   gap: 12px;
 }
-.barra-resumo { display: flex; flex-direction: column; line-height: 1.2; }
-.barra-resumo b { font-size: 1.1rem; }
+.barra-resumo { display: flex; flex-direction: column; align-items: flex-start; flex: 1; text-align: left; line-height: 1.2; }
+.barra-resumo b { font-size: 1.05rem; }
 .barra-fixa button { min-height: 52px; padding: 10px 24px; font-size: 1.05rem; }
-.selo {
-  display: inline-block;
-  margin-left: 8px;
-  min-width: 22px;
-  padding: 0 6px;
-  border-radius: 99px;
-  background: #fff;
-  color: var(--destaque);
-  text-align: center;
-}
-
 /* Mesas: indicadores e cartões */
 .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 .kpi {
@@ -406,20 +479,38 @@ main:has(.barra-fixa) { padding-bottom: 104px; }
 .falta { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; font-size: 1.1rem; }
 .falta b { font-size: 1.6rem; color: var(--destaque); }
 button.grande { width: 100%; min-height: 56px; font-size: 1.1rem; }
-button.entregar {
-  width: 100%;
-  min-height: 68px;
+/* Mesas: um botão de entregar por grupo, os três juntos numa barra só */
+.entregas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
   margin-bottom: 12px;
-  font-size: 1.3rem;
   border-radius: 14px;
-  background: var(--verde);
+  overflow: hidden;
+  background: var(--texto);
 }
+button.entregar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  min-height: 72px;
+  padding: 8px 4px;
+  border-radius: 0;
+  background: var(--verde);
+  line-height: 1.15;
+}
+button.entregar small { font-size: .7rem; font-weight: 600; opacity: .9; }
+button.entregar b { font-size: 1.1rem; }
+button.entregar .n { font-size: .8rem; background: rgba(255, 255, 255, .25); padding: 0 8px; border-radius: 99px; margin-top: 2px; }
+button.entregar:disabled { background: #b9b2a7; opacity: 1; }
+.grupo { margin-bottom: 8px; }
+.grupo-titulo { margin: 14px 0 6px; font-size: 1.1rem; color: var(--cinza); }
 
 @media (min-width: 900px) {
   .caixa-layout { grid-template-columns: minmax(260px, 1fr) 2fr; }
 }
 
 @media (max-width: 640px) {
-  .ticket-mesa { font-size: 2rem; }
   .barra-fixa button { padding: 10px 16px; }
 }

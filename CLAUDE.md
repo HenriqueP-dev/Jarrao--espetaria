@@ -13,7 +13,7 @@ Sistema web para a operação de um restaurante (pedidos, setores, mesas/contas,
 - Destino de cada produto vem do cadastro, nunca fixo no código.
 - Pedido registrado, preparado, entregue e pago são acontecimentos distintos.
 - Nunca apague registros silenciosamente: cancelamentos e alterações ficam no histórico.
-- Mesas: 1–8 e 10–23 (não existe a 9).
+- Mesas: o garçom digita o número (campo único "12" ou "12/João"), de 1 a 999, porque o restaurante às vezes empresta mesas do vizinho. As mesas próprias são 1–8 e 10–23, mas o sistema não restringe a esses números.
 - Pagamento é registro manual, não confirmação de maquininha.
 - Dados fictícios nos testes. Sem campos obrigatórios sem finalidade clara.
 - Mudanças pequenas e testáveis; escreva testes para regras importantes e diga o que foi (e não foi) testado.
