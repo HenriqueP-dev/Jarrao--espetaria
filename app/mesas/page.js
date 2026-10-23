@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
 import { MESAS } from '../../lib/mesas';
 import { ROTULOS, podeMudar } from '../../lib/estados';
@@ -8,8 +8,8 @@ import { totalConta, formatarReais } from '../../lib/conta';
 
 export default function Mesas() {
   const [abertas, setAbertas] = useState({}); // mesa -> conta
+  const [todosItens, setTodosItens] = useState([]); // itens de todas as contas abertas
   const [mesa, setMesa] = useState(null);
-  const [itens, setItens] = useState([]);
   const [historico, setHistorico] = useState([]);
   const [erro, setErro] = useState(null);
 
@@ -18,21 +18,21 @@ export default function Mesas() {
     if (error) return setErro(error.message);
     const porMesa = {};
     data.forEach((c) => (porMesa[c.mesa_numero] = c));
-    setAbertas(porMesa);
 
+    const ids = data.map((c) => c.id);
     const conta = mesa && porMesa[mesa];
-    if (!conta) {
-      setItens([]);
-      setHistorico([]);
-      return;
-    }
     const [it, hi] = await Promise.all([
-      supabase.from('itens_pedido').select('*').eq('conta_id', conta.id).order('criado_em'),
-      supabase.from('historico').select('*').eq('conta_id', conta.id).order('criado_em'),
+      ids.length
+        ? supabase.from('itens_pedido').select('*').in('conta_id', ids).order('criado_em')
+        : { data: [] },
+      conta
+        ? supabase.from('historico').select('*').eq('conta_id', conta.id).order('criado_em')
+        : { data: [] },
     ]);
     if (it.error || hi.error) return setErro((it.error || hi.error).message);
     setErro(null);
-    setItens(it.data);
+    setAbertas(porMesa);
+    setTodosItens(it.data);
     setHistorico(hi.data);
   }, [mesa]);
 
@@ -55,31 +55,80 @@ export default function Mesas() {
     else carregar();
   }
 
+  // Resumo de cada mesa com conta aberta: total registrado e itens esperando o garçom.
+  const resumo = useMemo(() => {
+    const r = {};
+    for (const c of Object.values(abertas)) {
+      const itens = todosItens.filter((i) => i.conta_id === c.id);
+      r[c.mesa_numero] = {
+        total: totalConta(itens),
+        prontos: itens.filter((i) => i.estado === 'pronto').length,
+        emAndamento: itens.filter((i) => i.estado === 'novo' || i.estado === 'em_preparo').length,
+      };
+    }
+    return r;
+  }, [abertas, todosItens]);
+
+  const qtdAbertas = Object.keys(abertas).length;
+  const qtdProntos = Object.values(resumo).reduce((s, r) => s + r.prontos, 0);
+  const qtdAndamento = Object.values(resumo).reduce((s, r) => s + r.emAndamento, 0);
+
+  const itens = abertas[mesa] ? todosItens.filter((i) => i.conta_id === abertas[mesa].id) : [];
+
   return (
     <>
       <h1>Mesas e contas</h1>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {erro && <div className="erro">{erro}</div>}
 
-      <div className="grade">
-        {MESAS.map((n) => (
-          <button
-            key={n}
-            className={`mesa ${abertas[n] ? 'aberta' : ''} ${mesa === n ? 'sel' : ''}`}
-            onClick={() => setMesa(n)}
-          >
-            {n}
-          </button>
-        ))}
+      <div className="kpis">
+        <div className="kpi">
+          <span className="mudo">Contas abertas</span>
+          <b>
+            {qtdAbertas}
+            <small>/{MESAS.length}</small>
+          </b>
+        </div>
+        <div className="kpi">
+          <span className="mudo">Em preparo</span>
+          <b>{qtdAndamento}</b>
+        </div>
+        <div className={`kpi ${qtdProntos ? 'destaque' : ''}`}>
+          <span className="mudo">Prontos p/ entregar</span>
+          <b>{qtdProntos}</b>
+        </div>
       </div>
-      <p className="mudo">Mesas destacadas têm conta aberta.</p>
+
+      <div className="grade-mesas">
+        {MESAS.map((n) => {
+          const r = resumo[n];
+          return (
+            <button
+              key={n}
+              className={`mesa-card ${r ? 'aberta' : ''} ${r?.prontos ? 'tem-pronto' : ''} ${mesa === n ? 'sel' : ''}`}
+              aria-pressed={mesa === n}
+              onClick={() => setMesa(n)}
+            >
+              <span className="mesa-num">{n}</span>
+              {r ? (
+                <>
+                  <span className="mesa-valor">{formatarReais(r.total)}</span>
+                  {r.prontos > 0 && <span className="mesa-aviso">{r.prontos} pronto(s)</span>}
+                </>
+              ) : (
+                <span className="mudo">livre</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
       {mesa && (
         <>
           <h2>Mesa {mesa}</h2>
           {!abertas[mesa] && <p className="mudo">Sem conta aberta.</p>}
           {itens.map((i) => (
-            <div key={i.id} className="card linha espaco">
+            <div key={i.id} className={`card linha espaco ${i.estado === 'pronto' ? 'card-pronto' : ''}`}>
               <div>
                 {i.quantidade}x {i.nome_produto}
                 {i.pessoa && <> ({i.pessoa})</>}

@@ -189,3 +189,245 @@ input::placeholder { color: var(--cinza); }
   .menu a { font-size: 1rem; padding: 8px 7px; }
   h1 { font-size: 1.9rem; }
 }
+
+/* ===== Direção visual dos wireframes (direcao_visual/) =====
+   Estrutura e hierarquia vêm dos wireframes; as cores continuam as da marca. */
+
+/* Telas dos setores: resumo, busca, abas e tickets de alta visibilidade */
+.contador-topo {
+  background: var(--amarelo);
+  color: var(--preto);
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.painel {
+  background: var(--superficie);
+  border: 3px solid var(--branco);
+  border-radius: var(--raio);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.painel-titulo {
+  font-family: var(--fonte-titulo), Impact, sans-serif;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--amarelo);
+  font-size: 1.2rem;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--borda);
+}
+.resumo { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.resumo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #171717;
+  border: 2px solid var(--borda);
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .85rem;
+}
+.resumo-item b {
+  font-size: 1.3rem;
+  background: var(--amarelo);
+  color: var(--preto);
+  padding: 0 8px;
+  border-radius: 6px;
+}
+.busca { width: 100%; margin-bottom: 8px; }
+
+.abas-grandes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 14px;
+  background: #171717;
+  border: 2px solid var(--borda);
+  border-radius: 10px;
+}
+.abas-grandes button {
+  background: transparent;
+  color: var(--branco);
+  padding: 8px 4px;
+  font-size: .95rem;
+}
+.abas-grandes button.on { background: var(--amarelo); color: var(--preto); }
+.abas-grandes .num {
+  display: inline-block;
+  min-width: 22px;
+  margin-left: 2px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .16);
+}
+.abas-grandes button.on .num { background: rgba(0, 0, 0, .2); }
+
+.ticket {
+  background: var(--superficie);
+  border: 3px solid var(--borda);
+  border-left-width: 8px;
+  border-radius: var(--raio);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.ticket.atencao, .ticket.critico { border-color: var(--amarelo); }
+.ticket.pronto { border-color: var(--verde); }
+.ticket-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--borda);
+}
+.ticket-mesa { margin: 0; font-size: 2.2rem; line-height: 1; color: var(--branco); }
+.ticket-tempo { text-align: right; display: flex; flex-direction: column; }
+.ticket-tempo b {
+  font-size: 1.1rem;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: #3a3a3a;
+}
+.ticket.atencao .ticket-tempo b { background: var(--amarelo); color: var(--preto); }
+/* Vermelho aqui é alerta de espera longa (20 min ou mais), não estado "novo". */
+.ticket.critico .ticket-tempo b { background: var(--vermelho); color: var(--branco); }
+.ticket.pronto .ticket-tempo b { background: var(--verde); color: var(--preto); }
+
+.ticket-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #171717;
+  border: 2px solid var(--borda);
+  border-radius: 10px;
+}
+.ticket-item.pronto { opacity: .8; border-color: var(--verde); }
+.ticket-nome { font-size: 1.15rem; font-weight: 700; }
+.ticket-nome b { font-size: 1.35rem; color: var(--amarelo); }
+.obs {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 2px dashed var(--amarelo);
+  border-radius: 8px;
+  font-weight: 700;
+}
+.ticket-acoes { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.ticket-acoes button { flex: 1; min-height: 52px; font-size: 1.05rem; }
+
+/* Garçom: barra fixa de envio */
+main:has(.barra-fixa) { padding-bottom: 104px; }
+.barra-fixa {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: var(--preto);
+  border-top: 2px solid var(--amarelo);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+}
+.barra-fixa-conteudo {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.barra-resumo { display: flex; flex-direction: column; line-height: 1.2; }
+.barra-resumo b { font-size: 1.1rem; }
+.barra-fixa button { min-height: 52px; padding: 10px 24px; font-size: 1.05rem; }
+.selo {
+  display: inline-block;
+  margin-left: 8px;
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--preto);
+  color: var(--amarelo);
+  text-align: center;
+}
+
+/* Mesas: indicadores e cartões */
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.kpi {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+.kpi .mudo { font-size: .78rem; text-transform: uppercase; font-weight: 700; }
+.kpi b { font-size: 1.9rem; line-height: 1.1; }
+.kpi small { font-size: .9rem; font-weight: 400; color: var(--cinza); }
+.kpi.destaque { border-color: var(--verde); background: rgba(67, 160, 71, .16); }
+
+.grade-mesas { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.mesa-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  min-height: 92px;
+  background: var(--superficie);
+  color: var(--branco);
+  border: 2px solid var(--borda);
+}
+.mesa-num { font-family: var(--fonte-titulo), Impact, sans-serif; font-size: 1.9rem; line-height: 1; font-weight: 400; }
+.mesa-valor { font-size: .9rem; font-weight: 700; }
+.mesa-card.aberta { border-color: var(--amarelo); background: rgba(255, 216, 61, .14); color: var(--amarelo); }
+.mesa-card.tem-pronto { border-color: var(--verde); background: rgba(67, 160, 71, .2); }
+.mesa-card.sel { outline: 3px solid var(--branco); outline-offset: 1px; }
+.mesa-aviso { font-size: .75rem; font-weight: 800; background: var(--verde); color: var(--preto); padding: 0 8px; border-radius: 99px; }
+.card-pronto { border-color: var(--verde); }
+
+/* Caixa: lista à esquerda, fechamento à direita em telas largas */
+.caixa-layout { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+.conta-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin-bottom: 8px;
+  text-align: left;
+  background: var(--superficie);
+  color: var(--branco);
+  border: 2px solid var(--borda);
+}
+.conta-lista.sel { border-color: var(--amarelo); background: rgba(255, 216, 61, .14); }
+.conta-mesa { font-family: var(--fonte-titulo), Impact, sans-serif; font-weight: 400; font-size: 1.4rem; letter-spacing: .04em; text-transform: uppercase; }
+.fechamento { background: var(--superficie); border: 2px solid var(--borda); border-radius: var(--raio); padding: 16px; }
+.extrato { font-variant-numeric: tabular-nums; }
+.extrato-linha { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--borda); }
+.extrato-linha.cancelado { opacity: .55; text-decoration: line-through; }
+.extrato-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 2px solid var(--branco);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+.falta { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; font-size: 1.1rem; }
+.falta b { font-size: 1.6rem; color: var(--amarelo); }
+button.grande { width: 100%; min-height: 56px; font-size: 1.1rem; }
+
+@media (min-width: 900px) {
+  .caixa-layout { grid-template-columns: minmax(260px, 1fr) 2fr; }
+  .ticket-acoes button { flex: 0 0 auto; min-width: 150px; }
+}
+
+@media (max-width: 640px) {
+  .ticket-mesa { font-size: 1.9rem; }
+  .barra-fixa button { padding: 10px 16px; }
+}

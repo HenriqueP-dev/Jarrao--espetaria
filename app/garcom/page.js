@@ -5,9 +5,8 @@ import { supabase, configurado } from '../../lib/supabase';
 import { MESAS } from '../../lib/mesas';
 import { validarPedido, formatarReais } from '../../lib/conta';
 import { adicionarProduto, erroDasLinhas, itensParaEnvio } from '../../lib/pedido';
+import { normalizar } from '../../lib/setor';
 
-// Tira acentos e maiúsculas para a busca ("cafe" acha "Café").
-const normalizar = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 export default function Garcom() {
   const [produtos, setProdutos] = useState([]);
@@ -67,6 +66,9 @@ export default function Garcom() {
   }
 
   const total = linhas.reduce((soma, l) => soma + l.produto.preco_centavos * l.quantidade, 0);
+  const qtdItens = linhas.reduce((soma, l) => soma + l.quantidade, 0);
+  // Quantas unidades de cada produto já estão no rascunho (selo no botão).
+  const noPedido = (id) => linhas.filter((l) => l.produto.id === id).reduce((s, l) => s + l.quantidade, 0);
 
   async function enviar() {
     const itens = itensParaEnvio(linhas, pessoa);
@@ -90,7 +92,12 @@ export default function Garcom() {
       <h2>1. Mesa</h2>
       <div className="grade">
         {MESAS.map((n) => (
-          <button key={n} className={`mesa ${mesa === n ? 'sel' : ''}`} onClick={() => setMesa(n)}>
+          <button
+            key={n}
+            className={`mesa ${mesa === n ? 'sel' : ''}`}
+            aria-pressed={mesa === n}
+            onClick={() => setMesa(n)}
+          >
             {n}
           </button>
         ))}
@@ -121,7 +128,9 @@ export default function Garcom() {
           <div>
             {p.nome} <span className="mudo">{formatarReais(p.preco_centavos)}</span>
           </div>
-          <button onClick={() => adicionar(p)}>+ Adicionar</button>
+          <button onClick={() => adicionar(p)}>
+            + Adicionar{noPedido(p.id) > 0 && <span className="selo">{noPedido(p.id)}</span>}
+          </button>
         </div>
       ))}
       {!visiveis.length && <p className="mudo">Nenhum produto encontrado.</p>}
@@ -162,11 +171,21 @@ export default function Garcom() {
           />
         </div>
       ))}
-      {linhas.length > 0 && <p><strong>Total: {formatarReais(total)}</strong></p>}
 
-      <button onClick={enviar} disabled={enviando || !linhas.length || mesa === null}>
-        {enviando ? 'Enviando…' : `Enviar pedido${mesa ? ` (mesa ${mesa})` : ''}`}
-      </button>
+      {/* Barra fixa: o botão de enviar fica sempre ao alcance do polegar. */}
+      <div className="barra-fixa">
+        <div className="barra-fixa-conteudo">
+          <div className="barra-resumo">
+            <span className="mudo">{mesa ? `Mesa ${mesa}` : 'Escolha a mesa'}</span>
+            <b>
+              {qtdItens} {qtdItens === 1 ? 'item' : 'itens'} · {formatarReais(total)}
+            </b>
+          </div>
+          <button onClick={enviar} disabled={enviando || !linhas.length || mesa === null}>
+            {enviando ? 'Enviando…' : 'Enviar pedido'}
+          </button>
+        </div>
+      </div>
     </>
   );
 }

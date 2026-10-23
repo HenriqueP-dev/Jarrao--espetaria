@@ -39,6 +39,14 @@ Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 
 - [Código] Títulos em Bebas Neue (letras condensadas parecidas com as do logo) e texto em Inter, carregados pelo Next.js.
 - [Código] Menu fixo no topo com o logo; no celular as cinco telas cabem na tela. Dá para adicionar o app à tela inicial do celular (manifesto).
 
+### Direção visual dos wireframes (`direcao_visual/`)
+
+- [Preferência] Os 4 wireframes (garçom, cozinha, churrasqueira, caixa) são a referência de **estrutura e hierarquia**: resumo em tempo real no topo dos setores, busca, abas por estado com contagem, ticket grande por mesa, observação em caixa tracejada, botões grandes, barra fixa de envio no celular, caixa em duas colunas. As cores continuam as da marca (os wireframes são cinza de propósito).
+- [Código] Aplicado em `/cozinha` e `/churrasqueira` (`TelaSetor`), `/garcom` (barra fixa com total e botão enviar; selo de quantidade em cada produto), `/mesas` (indicadores e cartões com total e "prontos") e `/caixa` (lista de contas + extrato com total grande e "falta receber").
+- [Código] Ticket agrupado por mesa, do pedido mais antigo ao mais novo. **Hipótese:** o tempo de espera muda de cor aos 10 min (amarelo) e 20 min (vermelho). Aqui o vermelho é alerta de espera longa, não o estado "Novo"; as faixas são palpite e precisam ser validadas com a equipe.
+- [Código] O resumo "em tempo real" soma só o que falta fazer (Novo + Em preparo), por produto, e é calculado a partir dos itens exibidos, sem estoque.
+- **Não adotado dos wireframes** (contradiz regras já registradas ou não foi decidido): delivery/balcão/retirada; taxa de serviço de 10% (B3: não há taxa); divisão por nº de pessoas (A2: fica para depois); Pix no resumo do dia (B1 pendente); "20 mesas" e mesa 09 (são 22 mesas, sem a 9); setor "Bar", "Fritadeira"/"Chapa" como subsetores (setor vem do cadastro); reimprimir via; pausar produto por estoque (C3 pendente); alarme sonoro; botão de voltar o item um estado; relatórios de faturamento. Podem entrar depois, se forem decididos.
+
 ## 3. Hipóteses implementadas no código (a validar)
 
 - [Código] Estados do item: Novo → Em preparo → Pronto → Entregue, mais Cancelado. Pode pular de Novo direto para Pronto. Cancelar é possível até antes de Entregue.
@@ -159,7 +167,7 @@ Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 
 | Cardápio | Resolvido na migration 004 (a rodar): 133 produtos reais, sem os itens sem preço | Cardápio real (apenas itens com preço informado) |
 | Produtos | Resolvido na migration 004 (a rodar): categorias, observação, escolha do espeto e setor garçom | Meia/inteira, sabores, adicionais e escolha do espeto na jantinha |
 | Aviso no setor | Item cancelado some da lista | Cancelamento visível ao setor |
-| Telas dos setores | Lista de itens | Quadro em colunas (Novos, Em preparo, Prontos) |
+| Telas dos setores | Tickets por mesa com abas por estado (Novos, Preparo, Prontos), em vez de colunas lado a lado | Quadro em colunas (Novos, Em preparo, Prontos); os wireframes mobile usam abas |
 | Troca de mesa, troca de item, mover item entre pessoas | Não existem | Com confirmação e histórico |
 | Quem entregou | Não é registrado (sem login) | Registrar quem marcou Entregue |
 | Pix | Fora das formas de pagamento | Provavelmente entra, só como registro manual depois da conferência; confirmar com a dona |

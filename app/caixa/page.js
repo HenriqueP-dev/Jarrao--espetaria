@@ -108,72 +108,96 @@ export default function Caixa() {
       {erro && <div className="erro">{erro}</div>}
       {aviso && <div className="ok">{aviso}</div>}
 
-      <h2>Contas abertas</h2>
-      {!contas.length && <p className="mudo">Nenhuma conta aberta.</p>}
-      {contas.map((c) => {
-        const total = totalItens(c.itens);
-        return (
-          <div key={c.id} className="card linha espaco">
-            <div>
-              <strong>Mesa {c.mesa_numero}</strong>{' '}
-              <span className="mudo">
-                total {formatarReais(total)} · pago {formatarReais(totalPago(c.pagamentos))} · falta{' '}
-                {formatarReais(saldo(c.itens, c.pagamentos))}
-              </span>
-            </div>
-            <button className={selecionada === c.id ? 'sec' : ''} onClick={() => escolher(c)}>
-              {selecionada === c.id ? 'Selecionada' : 'Abrir'}
-            </button>
-          </div>
-        );
-      })}
+      <div className="caixa-layout">
+        <section>
+          <h2>Contas abertas</h2>
+          {!contas.length && <p className="mudo">Nenhuma conta aberta.</p>}
+          {contas.map((c) => {
+            const falta = saldo(c.itens, c.pagamentos);
+            return (
+              <button
+                key={c.id}
+                className={`conta-lista ${selecionada === c.id ? 'sel' : ''}`}
+                aria-pressed={selecionada === c.id}
+                onClick={() => escolher(c)}
+              >
+                <span className="linha espaco">
+                  <strong className="conta-mesa">Mesa {c.mesa_numero}</strong>
+                  <strong>{formatarReais(totalItens(c.itens))}</strong>
+                </span>
+                <span className="mudo">
+                  pago {formatarReais(totalPago(c.pagamentos))} · falta {formatarReais(falta)}
+                </span>
+              </button>
+            );
+          })}
+        </section>
 
-      {conta && (
-        <>
-          <h2>Mesa {conta.mesa_numero}</h2>
-          {conta.itens.map((i) => (
-            <div key={i.id} className="card linha espaco">
-              <div>
-                {i.quantidade}x {i.nome_produto}
-                {i.pessoa && <> ({i.pessoa})</>}
-                {i.detalhe && <span className="mudo"> · {i.detalhe}</span>} — {formatarReais(i.preco_centavos * i.quantidade)}{' '}
-                <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
-              </div>
-            </div>
-          ))}
-          <p><strong>Total: {formatarReais(totalItens(conta.itens))}</strong></p>
+        <section>
+          {!conta && contas.length > 0 && <p className="mudo">Escolha uma conta para conferir e receber.</p>}
+          {conta && (
+            <div className="fechamento">
+              <h2 style={{ marginTop: 0 }}>Mesa {conta.mesa_numero}</h2>
 
-          <h3>Pagamentos</h3>
-          {!conta.pagamentos.length && <p className="mudo">Nenhum pagamento ainda.</p>}
-          {conta.pagamentos.map((p) => (
-            <div key={p.id} className="mudo">
-              {FORMAS_PAGAMENTO[p.forma]}: {formatarReais(p.valor_centavos)}
-            </div>
-          ))}
-
-          <div className="card">
-            <div className="linha">
-              <select value={forma} onChange={(e) => setForma(e.target.value)}>
-                {Object.entries(FORMAS_PAGAMENTO).map(([k, rotulo]) => (
-                  <option key={k} value={k}>{rotulo}</option>
+              <div className="extrato">
+                {conta.itens.map((i) => (
+                  <div key={i.id} className={`extrato-linha ${i.estado === 'cancelado' ? 'cancelado' : ''}`}>
+                    <span>
+                      {i.quantidade}x {i.nome_produto}
+                      {i.pessoa && <> ({i.pessoa})</>}
+                      {i.detalhe && <span className="mudo"> · {i.detalhe}</span>}{' '}
+                      <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
+                    </span>
+                    <span>{formatarReais(i.preco_centavos * i.quantidade)}</span>
+                  </div>
                 ))}
-              </select>
-              <input
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
-                inputMode="decimal"
-                placeholder="0,00"
-                style={{ width: 120 }}
-              />
-              <button onClick={registrarPagamento}>Registrar pagamento</button>
-            </div>
-            <p className="mudo">Registro manual: não confirma a operadora do cartão.</p>
-          </div>
+                <div className="extrato-total">
+                  <span>Total</span>
+                  <span>{formatarReais(totalItens(conta.itens))}</span>
+                </div>
+              </div>
 
-          <button onClick={fecharConta} disabled={Boolean(motivo)}>Fechar conta</button>
-          {motivo && <p className="mudo">{motivo}</p>}
-        </>
-      )}
+              <h3>Pagamentos</h3>
+              {!conta.pagamentos.length && <p className="mudo">Nenhum pagamento ainda.</p>}
+              {conta.pagamentos.map((p) => (
+                <div key={p.id} className="extrato-linha">
+                  <span>{FORMAS_PAGAMENTO[p.forma]}</span>
+                  <span>{formatarReais(p.valor_centavos)}</span>
+                </div>
+              ))}
+              <div className="falta">
+                <span>Falta receber</span>
+                <b>{formatarReais(saldo(conta.itens, conta.pagamentos))}</b>
+              </div>
+
+              <div className="card">
+                <div className="linha">
+                  <select value={forma} onChange={(e) => setForma(e.target.value)} aria-label="Forma de pagamento">
+                    {Object.entries(FORMAS_PAGAMENTO).map(([k, rotulo]) => (
+                      <option key={k} value={k}>{rotulo}</option>
+                    ))}
+                  </select>
+                  <input
+                    value={valor}
+                    onChange={(e) => setValor(e.target.value)}
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    aria-label="Valor recebido"
+                    style={{ width: 120 }}
+                  />
+                  <button onClick={registrarPagamento}>Registrar pagamento</button>
+                </div>
+                <p className="mudo">Registro manual: não confirma a operadora do cartão.</p>
+              </div>
+
+              <button className="grande" onClick={fecharConta} disabled={Boolean(motivo)}>
+                Fechar conta
+              </button>
+              {motivo && <p className="mudo">{motivo}</p>}
+            </div>
+          )}
+        </section>
+      </div>
     </>
   );
 }
