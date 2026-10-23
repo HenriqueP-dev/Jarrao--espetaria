@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
 import { MESAS } from '../../lib/mesas';
-import { ROTULOS, podeMudar } from '../../lib/estados';
+import { ROTULOS, itensEntregaveis } from '../../lib/estados';
 import { totalConta, formatarReais } from '../../lib/conta';
 
 export default function Mesas() {
@@ -74,6 +74,17 @@ export default function Mesas() {
   const qtdAndamento = Object.values(resumo).reduce((s, r) => s + r.emAndamento, 0);
 
   const itens = abertas[mesa] ? todosItens.filter((i) => i.conta_id === abertas[mesa].id) : [];
+  const paraEntregar = itensEntregaveis(itens);
+
+  // Um botão só: entrega tudo que está pronto (churrasqueira, cozinha) e as bebidas.
+  async function entregarTudo() {
+    const respostas = await Promise.all(
+      paraEntregar.map((i) => supabase.rpc('mudar_estado_item', { p_item: i.id, p_novo: 'entregue' }))
+    );
+    const falha = respostas.find((r) => r.error);
+    setErro(falha ? falha.error.message : null);
+    carregar();
+  }
 
   return (
     <>
@@ -127,6 +138,13 @@ export default function Mesas() {
         <>
           <h2>Mesa {mesa}</h2>
           {!abertas[mesa] && <p className="mudo">Sem conta aberta.</p>}
+          {abertas[mesa] && (
+            <button className="entregar" onClick={entregarTudo} disabled={!paraEntregar.length}>
+              {paraEntregar.length
+                ? `Entregue (${paraEntregar.reduce((s, i) => s + i.quantidade, 0)} itens)`
+                : 'Nada pronto para entregar'}
+            </button>
+          )}
           {itens.map((i) => (
             <div key={i.id} className={`card linha espaco ${i.estado === 'pronto' ? 'card-pronto' : ''}`}>
               <div>
@@ -135,14 +153,9 @@ export default function Mesas() {
                 {i.detalhe && <span className="mudo"> · {i.detalhe}</span>} — {formatarReais(i.preco_centavos * i.quantidade)}{' '}
                 <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
               </div>
-              <div className="linha">
-                {podeMudar(i.estado, 'entregue', i.setor) && (
-                  <button onClick={() => mudar(i.id, 'entregue')}>Entregue</button>
-                )}
-                {['novo', 'em_preparo', 'pronto'].includes(i.estado) && (
-                  <button className="perigo" onClick={() => mudar(i.id, 'cancelado')}>Cancelar</button>
-                )}
-              </div>
+              {['novo', 'em_preparo', 'pronto'].includes(i.estado) && (
+                <button className="perigo" onClick={() => mudar(i.id, 'cancelado')}>Cancelar</button>
+              )}
             </div>
           ))}
           {abertas[mesa] && (

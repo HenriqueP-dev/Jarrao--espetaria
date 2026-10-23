@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  agruparFichas,
   agruparPorConta,
   contarPorAba,
+  faseDaFicha,
   filtrarItens,
+  itensParaAvancar,
   minutosDesde,
-  resumoPorProduto,
   urgencia,
 } from '../lib/setor';
 
@@ -20,25 +22,6 @@ const item = (extra) => ({
   detalhe: null,
   criado_em: '2026-10-22T19:00:00Z',
   ...extra,
-});
-
-describe('resumoPorProduto', () => {
-  it('soma o que falta fazer e ignora itens prontos', () => {
-    const itens = [
-      item({ nome_produto: 'Batata frita', quantidade: 2 }),
-      item({ nome_produto: 'Batata frita', quantidade: 1, estado: 'em_preparo' }),
-      item({ nome_produto: 'Quibe', quantidade: 4, estado: 'pronto' }),
-    ];
-    expect(resumoPorProduto(itens)).toEqual([{ nome: 'Batata frita', quantidade: 3 }]);
-  });
-
-  it('ordena do maior para o menor', () => {
-    const itens = [
-      item({ nome_produto: 'A', quantidade: 1 }),
-      item({ nome_produto: 'B', quantidade: 5 }),
-    ];
-    expect(resumoPorProduto(itens).map((r) => r.nome)).toEqual(['B', 'A']);
-  });
 });
 
 describe('contarPorAba', () => {
@@ -82,6 +65,42 @@ describe('agruparPorConta', () => {
     expect(grupos.map((g) => g.mesa)).toEqual([2, 1]);
     expect(grupos[0].itens).toHaveLength(2);
     expect(grupos[0].maisAntigo).toBe('2026-10-22T18:50:00Z');
+  });
+});
+
+describe('ficha única por mesa', () => {
+  const itens = [
+    item({ conta_id: 'a', contas: { mesa_numero: 1 }, nome_produto: 'Jantinha', estado: 'novo' }),
+    item({ conta_id: 'a', contas: { mesa_numero: 1 }, nome_produto: 'Espeto', estado: 'pronto' }),
+    item({ conta_id: 'b', contas: { mesa_numero: 2 }, nome_produto: 'Espeto', estado: 'em_preparo' }),
+  ];
+
+  it('mostra todos os itens da mesa mesmo quando só um casa com a aba', () => {
+    const fichas = agruparFichas(itens, 'novo', '');
+    expect(fichas).toHaveLength(1);
+    expect(fichas[0].itens).toHaveLength(2);
+  });
+
+  it('a busca acha a mesa e mantém a ficha inteira', () => {
+    const fichas = agruparFichas(itens, 'todos', 'jantinha');
+    expect(fichas.map((f) => f.mesa)).toEqual([1]);
+    expect(fichas[0].itens).toHaveLength(2);
+  });
+
+  it('descobre a fase da ficha', () => {
+    expect(faseDaFicha([item({}), item({})])).toBe('novo');
+    expect(faseDaFicha([item({ estado: 'pronto' })])).toBe('pronto');
+    expect(faseDaFicha([item({}), item({ estado: 'pronto' })])).toBe('em_preparo');
+  });
+
+  it('a ação da ficha só muda os itens que ainda podem mudar', () => {
+    const lista = [
+      item({ id: 1, estado: 'novo' }),
+      item({ id: 2, estado: 'em_preparo' }),
+      item({ id: 3, estado: 'pronto' }),
+    ];
+    expect(itensParaAvancar(lista, 'em_preparo').map((i) => i.id)).toEqual([1]);
+    expect(itensParaAvancar(lista, 'pronto').map((i) => i.id)).toEqual([1, 2]);
   });
 });
 

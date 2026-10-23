@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarrão Espetaria - Wireframe Ficha Única (Fase 1)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; color: #0f172a; }
+    .wireframe-card { background-color: #ffffff; border: 2px solid #64748b; }
+    .wireframe-btn { background-color: #e2e8f0; border: 2px solid #475569; font-weight: 700; color: #0f172a; }
+    .wireframe-btn:hover { background-color: #cbd5e1; }
+    .wireframe-btn-dark { background-color: #1e293b; border: 2px solid #0f172a; color: #ffffff; font-weight: 700; }
+    .wireframe-btn-dark:hover { background-color: #0f172a; }
+    .item-row { border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; margin-bottom: 8px; }
+    .item-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-100">
+
+  <!-- BARRA SUPERIOR -->
+  <header class="bg-slate-800 text-white px-6 py-3 flex items-center justify-between border-b-4 border-slate-900 shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="bg-slate-200 text-slate-900 font-extrabold px-3 py-1 rounded border-2 border-slate-400 text-lg">
+        [LOGO] JARRÃO ESPETARIA
+      </div>
+      <span class="text-xs bg-slate-700 text-slate-200 px-2 py-1 rounded border border-slate-500 font-mono">
+        ESTRUTURA: FICHA ÚNICA POR MESA
+      </span>
+    </div>
+    <div class="text-xs font-mono text-slate-300">
+      Operador: <strong class="text-white font-bold">[ Henrique (Gerente) ]</strong>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- MENU LATERAL -->
+    <aside class="w-64 bg-slate-200 border-r-2 border-slate-400 p-4 flex flex-col justify-between shrink-0">
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-2">Navegação Geral</div>
+        <button onclick="switchTab('churrasco')" id="btn-churrasco" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-700 bg-slate-300 text-slate-900 flex items-center justify-between">
+          <span>1. Churrasqueira</span>
+          <span class="text-xs bg-slate-400 px-1.5 py-0.5 rounded">F3</span>
+        </button>
+        <button onclick="switchTab('kanban')" id="btn-kanban" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>2. Painel / Kanban</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F1</span>
+        </button>
+        <button onclick="switchTab('caixa')" id="btn-caixa" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>3. Caixa & Pagamentos</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F8</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 overflow-y-auto p-6 bg-slate-100">
+
+      <!-- TELA CHURRASQUEIRA (FICHA ÚNICA) -->
+      <section id="sec-churrasco" class="space-y-6">
+        
+        <!-- PAINEL SUPERIOR: TOTALIZADOR GERAL NA GRELHA -->
+        <div class="wireframe-card p-4 rounded-lg bg-slate-800 text-white border-4 border-slate-900">
+          <div class="font-extrabold text-sm text-slate-300 uppercase tracking-wider mb-2">
+            🥩 Resumo Geral na Grelha (Total de Espetos Pendentes nas Comandas):
+          </div>
+          <div class="flex flex-wrap gap-3 font-mono">
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">6x JANTINHA CUPIM</span>
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">4x ESPETO PICANHA</span>
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">3x FRANGO C/ BACON</span>
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">2x QUEIJO COALHO</span>
+          </div>
+        </div>
+
+        <!-- LISTA DE COMANDAS (UMA FICHA POR MESA) -->
+        <div class="grid grid-cols-2 gap-6">
+
+          <!-- FICHA 1: MESA 05 -->
+          <div class="wireframe-card p-5 rounded-lg space-y-4 border-2 border-slate-800">
+            <div class="flex justify-between items-center border-b-2 border-slate-800 pb-3">
+              <div>
+                <span class="font-black text-2xl text-slate-900">FICHA #104 — MESA 05</span>
+                <div class="text-xs text-slate-500 font-mono">Garçom: Carlos • Tempo na fila: 08 min</div>
+              </div>
+              <span class="bg-slate-200 border border-slate-400 px-3 py-1 rounded text-xs font-mono font-bold">EM ESPERA</span>
+            </div>
+
+            <!-- ITENS AGRUPADOS DA MESA 05 -->
+            <div class="space-y-3 font-mono text-sm bg-slate-50 p-3 rounded border border-slate-300">
+              <div class="item-row">
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-5 h-5 mt-0.5">
+                  <div>
+                    <strong class="text-base text-slate-900">ITEM 1: 2x JANTINHA COMPLETA — CUPIM</strong>
+                    <div class="text-xs text-slate-700 font-bold">└─ Ponto: [ AO PONTO ]</div>
+                    <div class="text-xs text-slate-600">└─ Acompanhamentos: Tropeiro, Mandioca, Vinagrete, Farofa</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="item-row">
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-5 h-5 mt-0.5">
+                  <div>
+                    <strong class="text-base text-slate-900">ITEM 2: 1x ESPETO AVULSO — PICANHA</strong>
+                    <div class="text-xs text-slate-700 font-bold">└─ Ponto: [ BEM PASSADA ]</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="item-row">
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-5 h-5 mt-0.5">
+                  <div>
+                    <strong class="text-base text-slate-900">ITEM 3: 2x ESPETO AVULSO — FRANGO C/ BACON</strong>
+                    <div class="text-xs text-slate-700 font-bold">└─ Ponto: [ AO PONTO ]</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- OBSERVAÇÃO DA MESA -->
+            <div class="bg-amber-50 border border-amber-300 p-2.5 rounded text-xs font-mono">
+              <strong>Obs do Pedido:</strong> "Capricho no vinagrete da jantinha"
+            </div>
+
+            <!-- BOTÃO DE AÇÃO DA MESA INTEIRA -->
+            <button class="wireframe-btn-dark w-full py-3 text-base rounded">INICIAR ASSADO DA MESA 🔥</button>
+          </div>
+
+          <!-- FICHA 2: DELIVERY #12 -->
+          <div class="wireframe-card p-5 rounded-lg space-y-4 border-2 border-slate-800">
+            <div class="flex justify-between items-center border-b-2 border-slate-800 pb-3">
+              <div>
+                <span class="font-black text-2xl text-slate-900">FICHA #105 — DELIVERY #12</span>
+                <div class="text-xs text-slate-500 font-mono">Atendente: Ana • Tempo na fila: 03 min</div>
+              </div>
+              <span class="bg-slate-200 border border-slate-400 px-3 py-1 rounded text-xs font-mono font-bold">EM ESPERA</span>
+            </div>
+
+            <!-- ITENS AGRUPADOS DO DELIVERY #12 -->
+            <div class="space-y-3 font-mono text-sm bg-slate-50 p-3 rounded border border-slate-300">
+              <div class="item-row">
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-5 h-5 mt-0.5">
+                  <div>
+                    <strong class="text-base text-slate-900">ITEM 1: 1x JANTINHA COMPLETA — CORAÇÃO DE FRANGO</strong>
+                    <div class="text-xs text-slate-600">└─ Acompanhamentos: Tropeiro, Mandioca, Vinagrete</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="item-row">
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-5 h-5 mt-0.5">
+                  <div>
+                    <strong class="text-base text-slate-900">ITEM 2: 1x ESPETO AVULSO — CUPIM</strong>
+                    <div class="text-xs text-slate-700 font-bold">└─ Ponto: [ MAL PASSADA ]</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- BOTÃO DE AÇÃO DA MESA INTEIRA -->
+            <button class="wireframe-btn-dark w-full py-3 text-base rounded">INICIAR ASSADO DA MESA 🔥</button>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>

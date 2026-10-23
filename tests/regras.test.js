@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MESAS, mesaValida } from '../lib/mesas.js';
-import { podeMudar, proximosEstados } from '../lib/estados.js';
+import { itensEntregaveis, podeMudar, proximosEstados } from '../lib/estados.js';
 import { totalConta, validarPedido } from '../lib/conta.js';
 
 describe('mesas', () => {
@@ -44,5 +44,20 @@ describe('conta', () => {
     expect(validarPedido(12, [])).not.toBeNull();
     expect(validarPedido(12, [{ quantidade: 0 }])).not.toBeNull();
     expect(validarPedido(12, [{ quantidade: 2 }])).toBeNull();
+  });
+});
+
+describe('entrega da mesa', () => {
+  it('entrega o que está pronto e as bebidas do setor garçom, e mais nada', () => {
+    const itens = [
+      { id: 1, estado: 'pronto', setor: 'churrasqueira' },
+      { id: 2, estado: 'pronto', setor: 'cozinha' },
+      { id: 3, estado: 'novo', setor: 'garcom' },
+      { id: 4, estado: 'novo', setor: 'churrasqueira' },
+      { id: 5, estado: 'em_preparo', setor: 'cozinha' },
+      { id: 6, estado: 'entregue', setor: 'cozinha' },
+      { id: 7, estado: 'cancelado', setor: 'garcom' },
+    ];
+    expect(itensEntregaveis(itens).map((i) => i.id)).toEqual([1, 2, 3]);
   });
 });

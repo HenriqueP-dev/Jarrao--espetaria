@@ -5,17 +5,17 @@ import { supabase, configurado } from '../../lib/supabase';
 import { ROTULOS } from '../../lib/estados';
 import {
   ABAS,
-  agruparPorConta,
+  agruparFichas,
   contarPorAba,
-  filtrarItens,
+  faseDaFicha,
+  itensParaAvancar,
   minutosDesde,
-  resumoPorProduto,
   urgencia,
 } from '../../lib/setor';
 
 // Tela de um setor: mostra só os itens do setor, em tempo real.
-// Visual de "alta visibilidade" (direção em direcao_visual/): resumo do que
-// falta fazer, abas por estado e um ticket grande por mesa.
+// Visual pensado para churrasqueira e cozinha (direção em direcao_visual/):
+// abas por estado e uma ficha por mesa com um único botão grande.
 // "Entregue" é registrado na tela Mesas (hipótese: quem entrega é o garçom).
 export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
   const [itens, setItens] = useState([]);
@@ -57,12 +57,19 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
     else carregar();
   }
 
+  // Muda todos os itens da ficha que ainda podem mudar (um por vez no banco).
+  async function avancarFicha(ficha, destino) {
+    const alvos = itensParaAvancar(ficha.itens, destino);
+    const respostas = await Promise.all(
+      alvos.map((i) => supabase.rpc('mudar_estado_item', { p_item: i.id, p_novo: destino }))
+    );
+    const falha = respostas.find((r) => r.error);
+    setErro(falha ? falha.error.message : null);
+    carregar();
+  }
+
   const contagem = useMemo(() => contarPorAba(itens), [itens]);
-  const resumo = useMemo(() => resumoPorProduto(itens), [itens]);
-  const tickets = useMemo(
-    () => agruparPorConta(filtrarItens(itens, aba, busca)),
-    [itens, aba, busca]
-  );
+  const tickets = useMemo(() => agruparFichas(itens, aba, busca), [itens, aba, busca]);
   const faltaFazer = contagem.novo + contagem.em_preparo;
 
   return (
@@ -75,22 +82,6 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
       </div>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {erro && <div className="erro">{erro}</div>}
-
-      <section className="painel" aria-label="Resumo em tempo real">
-        <div className="painel-titulo">Resumo em tempo real</div>
-        {resumo.length ? (
-          <div className="resumo">
-            {resumo.map((r) => (
-              <div key={r.nome} className="resumo-item">
-                <span>{r.nome}</span>
-                <b>{r.quantidade}x</b>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="mudo">Nada na fila agora.</p>
-        )}
-      </section>
 
       <input
         className="busca"
@@ -121,9 +112,9 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
 
       {tickets.map((t) => {
         const min = minutosDesde(t.maisAntigo, agora);
-        const tudoPronto = t.itens.every((i) => i.estado === 'pronto');
+        const fase = faseDaFicha(t.itens);
         return (
-          <article key={t.conta_id} className={`ticket ${tudoPronto ? 'pronto' : urgencia(min)}`}>
+          <article key={t.conta_id} className={`ticket ${fase === 'pronto' ? 'pronto' : urgencia(min)}`}>
             <header className="ticket-topo">
               <div>
                 <h3 className="ticket-mesa">Mesa {t.mesa}</h3>
@@ -140,28 +131,38 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
             </header>
 
             {t.itens.map((i) => (
-              <div key={i.id} className={`ticket-item ${i.estado}`}>
-                <div className="linha espaco">
-                  <div className="ticket-nome">
-                    <b>{i.quantidade}x</b> {i.nome_produto}
-                    {i.pessoa && <span className="mudo"> · {i.pessoa}</span>}
+              <label key={i.id} className={`ticket-item ${i.estado}`}>
+                <input
+                  type="checkbox"
+                  className="marcar"
+                  checked={i.estado === 'pronto'}
+                  disabled={i.estado === 'pronto'}
+                  onChange={() => mudar(i.id, 'pronto')}
+                  aria-label={`Marcar ${i.nome_produto} como pronto`}
+                />
+                <div className="ticket-corpo">
+                  <div className="linha espaco">
+                    <div className="ticket-nome">
+                      <b>{i.quantidade}x</b> {i.nome_produto}
+                      {i.pessoa && <span className="mudo"> · {i.pessoa}</span>}
+                    </div>
+                    <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
                   </div>
-                  <span className={`tag ${i.estado}`}>{ROTULOS[i.estado]}</span>
+                  {i.detalhe && <div className="obs">{i.detalhe}</div>}
                 </div>
-                {i.detalhe && <div className="obs">{i.detalhe}</div>}
-                <div className="ticket-acoes">
-                  {i.estado === 'novo' && (
-                    <button className="sec" onClick={() => mudar(i.id, 'em_preparo')}>
-                      Em preparo
-                    </button>
-                  )}
-                  {(i.estado === 'novo' || i.estado === 'em_preparo') && (
-                    <button onClick={() => mudar(i.id, 'pronto')}>Pronto ✓</button>
-                  )}
-                  {i.estado === 'pronto' && <span className="mudo">Aguardando o garçom retirar</span>}
-                </div>
-              </div>
+              </label>
             ))}
+
+            {/* Um único botão grande, que muda conforme a fase. O estado continua sendo de cada item. */}
+            <div className="ticket-acoes">
+              {fase === 'novo' && (
+                <button onClick={() => avancarFicha(t, 'em_preparo')}>Iniciar preparo</button>
+              )}
+              {fase === 'em_preparo' && (
+                <button onClick={() => avancarFicha(t, 'pronto')}>Pronto ✓</button>
+              )}
+              {fase === 'pronto' && <span className="mudo">Pronto. Aguardando o garçom retirar.</span>}
+            </div>
           </article>
         );
       })}
