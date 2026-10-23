@@ -9,6 +9,9 @@ Sistema web para integrar a operação do Jarrão Espetaria (Barretos – SP): p
 - [Decisões e pendências](docs/DECISOES.md) — o que já foi decidido e o que falta.
 - [CLAUDE.md](CLAUDE.md) — instruções para o Claude Code.
 
+## Identidade visual
+Logo e ícones em `public/`, cores e tipografia em `app/globals.css` e `app/layout.js` (detalhes em [docs/DECISOES.md](docs/DECISOES.md)).
+
 ## Tecnologia
 Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem futura).
 

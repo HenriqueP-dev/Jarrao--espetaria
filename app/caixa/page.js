@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase, configurado } from '../../lib/supabase';
 import { ROTULOS } from '../../lib/estados';
 import { formatarReais } from '../../lib/conta';
@@ -105,7 +104,6 @@ export default function Caixa() {
   return (
     <>
       <h1>Caixa</h1>
-      <nav><Link href="/">Início</Link><Link href="/mesas">Mesas e contas</Link></nav>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {erro && <div className="erro">{erro}</div>}
       {aviso && <div className="ok">{aviso}</div>}

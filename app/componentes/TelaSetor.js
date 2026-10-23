@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase, configurado } from '../../lib/supabase';
 import { ROTULOS } from '../../lib/estados';
 
@@ -46,7 +45,6 @@ export default function TelaSetor({ setor, titulo }) {
   return (
     <>
       <h1>{titulo}</h1>
-      <nav><Link href="/">Início</Link></nav>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {erro && <div className="erro">{erro}</div>}
       {!itens.length && <p className="mudo">Nenhum item pendente.</p>}

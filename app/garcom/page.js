@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { supabase, configurado } from '../../lib/supabase';
 import { MESAS } from '../../lib/mesas';
 import { validarPedido, formatarReais } from '../../lib/conta';
@@ -85,7 +84,6 @@ export default function Garcom() {
   return (
     <>
       <h1>Garçom</h1>
-      <nav><Link href="/">Início</Link><Link href="/mesas">Mesas e contas</Link></nav>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {msg && <div className={msg.tipo}>{msg.texto}</div>}
 

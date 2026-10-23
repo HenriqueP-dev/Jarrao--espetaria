@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase, configurado } from '../../lib/supabase';
 import { MESAS } from '../../lib/mesas';
 import { ROTULOS, podeMudar } from '../../lib/estados';
@@ -59,7 +58,6 @@ export default function Mesas() {
   return (
     <>
       <h1>Mesas e contas</h1>
-      <nav><Link href="/">Início</Link><Link href="/garcom">Garçom</Link></nav>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {erro && <div className="erro">{erro}</div>}
 

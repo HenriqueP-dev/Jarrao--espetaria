@@ -30,6 +30,15 @@ Referências: [CONTEXTO_DO_PROJETO.md](CONTEXTO_DO_PROJETO.md) (como o restauran
 
 Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 a 003: pedido do garçom → setores em tempo real → preparo → entrega → cancelamento → pagamento parcial → fechamento da conta. Existem 17 testes automáticos das regras em JavaScript. As funções do banco ainda não têm testes automáticos. Depois, o desenvolvedor também validou à mão a migration 004 (cardápio real, setor garçom, observação e escolha do espeto na jantinha) e confirmou que funcionou.
 
+## Identidade visual
+
+- [Fato] Logo e paleta fornecidos pelo desenvolvedor (preto `#0B0B0B`, amarelo `#FFD83D`, vermelho `#E53935`, branco `#F5F5F5`, cinza-escuro `#242424`, cinza `#A3A3A3`). Não confirmados pelo dono.
+- [Código] Tema escuro com as cores acima em `app/globals.css`; logo e ícones em `public/` e `app/` (os ícones são os espetos recortados do logo).
+- [Código] Vermelho só para cancelado, erros e ações críticas; nunca para "novo". Estados: Novo = contorno amarelo, Em preparo = amarelo cheio, Pronto = verde, Entregue = cinza, Cancelado = vermelho.
+- [Código] O **verde** (`#43A047`, o verde do espeto do logo) foi acrescentado só para "Pronto". Não faz parte da paleta oficial; trocar se o dono preferir.
+- [Código] Títulos em Bebas Neue (letras condensadas parecidas com as do logo) e texto em Inter, carregados pelo Next.js.
+- [Código] Menu fixo no topo com o logo; no celular as cinco telas cabem na tela. Dá para adicionar o app à tela inicial do celular (manifesto).
+
 ## 3. Hipóteses implementadas no código (a validar)
 
 - [Código] Estados do item: Novo → Em preparo → Pronto → Entregue, mais Cancelado. Pode pular de Novo direto para Pronto. Cancelar é possível até antes de Entregue.

@@ -1,28 +1,191 @@
+/* Identidade visual do Jarrão Espetaria.
+   Paleta oficial: preto, amarelo, vermelho, branco, cinza-escuro e cinza.
+   O verde só existe para o estado "Pronto" (não faz parte da paleta oficial;
+   é o verde do espeto do logo). */
+:root {
+  --preto: #0b0b0b;
+  --amarelo: #ffd83d;
+  --vermelho: #e53935;
+  --branco: #f5f5f5;
+  --superficie: #242424;
+  --cinza: #a3a3a3;
+  --verde: #43a047;
+  --borda: #3a3a3a;
+  --raio: 12px;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, sans-serif; background: #f4f1ec; color: #222; }
-main { max-width: 900px; margin: 0 auto; padding: 16px; }
-h1 { margin: 0 0 12px; font-size: 1.5rem; }
-a { color: #8a2b0e; }
-button { font: inherit; padding: 10px 14px; border: 0; border-radius: 8px; background: #8a2b0e; color: #fff; cursor: pointer; }
-button.sec { background: #ddd; color: #222; }
-button.perigo { background: #b00020; }
-button:disabled { opacity: .5; }
-input, select { font: inherit; padding: 8px; border: 1px solid #bbb; border-radius: 8px; }
-.card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px #0002; }
+
+body {
+  margin: 0;
+  background: var(--preto);
+  color: var(--branco);
+  font-family: var(--fonte-corpo), system-ui, sans-serif;
+  line-height: 1.4;
+}
+
+main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+
+h1, h2, h3 {
+  font-family: var(--fonte-titulo), Impact, 'Arial Narrow', sans-serif;
+  font-weight: 400;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+h1 { margin: 8px 0 12px; font-size: 2.2rem; color: var(--amarelo); line-height: 1.05; }
+h2 { margin: 24px 0 10px; font-size: 1.5rem; color: var(--branco); }
+h3 { margin: 16px 0 8px; font-size: 1.2rem; color: var(--cinza); }
+
+a { color: var(--amarelo); }
+
+/* Cabeçalho */
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--preto);
+  border-bottom: 2px solid var(--amarelo);
+}
+.topo-conteudo {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo { height: 52px; width: auto; display: block; mix-blend-mode: lighten; }
+.menu { display: flex; gap: 6px; overflow-x: auto; flex: 1; justify-content: flex-end; scrollbar-width: none; }
+.menu::-webkit-scrollbar { display: none; }
+.menu a {
+  color: var(--branco);
+  text-decoration: none;
+  font-family: var(--fonte-titulo), Impact, sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  font-size: 1.15rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.menu a:hover { background: var(--superficie); }
+.menu a.ativo { background: var(--amarelo); color: var(--preto); }
+
+/* Botões e campos */
+button {
+  font: inherit;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--amarelo);
+  color: var(--preto);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { filter: brightness(1.08); }
+button.sec { background: #2f2f2f; color: var(--branco); border: 1px solid #4a4a4a; }
+button.perigo { background: var(--vermelho); color: var(--branco); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+  outline: 3px solid var(--branco);
+  outline-offset: 2px;
+}
+
+input, select {
+  font: inherit;
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--branco);
+  background: #171717;
+  border: 1px solid #4a4a4a;
+  border-radius: 10px;
+}
+input::placeholder { color: var(--cinza); }
+
+/* Cartões e listas */
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
 .linha { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .espaco { justify-content: space-between; }
-.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
-.mesa { padding: 14px 0; text-align: center; background: #fff; color: #222; border: 2px solid #ccc; }
-.mesa.aberta { border-color: #8a2b0e; background: #fbe9e2; }
-.mesa.sel { outline: 3px solid #222; }
-.aviso { background: #fff3cd; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-.erro { background: #fde0e0; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-.ok { background: #dff3e0; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-.mudo { color: #666; font-size: .9rem; }
-.tag { padding: 2px 8px; border-radius: 99px; background: #eee; font-size: .85rem; }
-.tag.novo { background: #ffe2a8; } .tag.em_preparo { background: #cfe3ff; }
-.tag.pronto { background: #c8f0c8; } .tag.entregue { background: #ddd; }
-.tag.cancelado { background: #f5c0c0; text-decoration: line-through; }
-nav { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.mudo { color: var(--cinza); font-size: .9rem; }
+
+/* Mesas */
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+.mesa {
+  padding: 14px 0;
+  font-size: 1.2rem;
+  text-align: center;
+  background: var(--superficie);
+  color: var(--branco);
+  border: 2px solid var(--borda);
+}
+.mesa.aberta { border-color: var(--amarelo); background: rgba(255, 216, 61, .14); color: var(--amarelo); }
+.mesa.sel { outline: 3px solid var(--branco); outline-offset: 1px; }
+
+/* Avisos */
+.aviso, .erro, .ok {
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: var(--superficie);
+  border-left: 5px solid var(--amarelo);
+}
+.erro { border-left-color: var(--vermelho); background: rgba(229, 57, 53, .16); }
+.ok { border-left-color: var(--verde); background: rgba(67, 160, 71, .16); }
+
+/* Estados do item. Vermelho é só para cancelado/atenção, nunca para "novo". */
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: .8rem;
+  font-weight: 700;
+  background: #3a3a3a;
+  color: var(--branco);
+}
+.tag.novo { background: transparent; color: var(--amarelo); border: 1px solid var(--amarelo); }
+.tag.em_preparo { background: var(--amarelo); color: var(--preto); }
+.tag.pronto { background: var(--verde); color: var(--preto); }
+.tag.entregue { background: #3a3a3a; color: var(--cinza); }
+.tag.cancelado { background: var(--vermelho); color: var(--branco); text-decoration: line-through; }
+
 .abas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-.abas button { padding: 6px 10px; font-size: .9rem; }
+.abas button { min-height: 38px; padding: 6px 12px; font-size: .9rem; }
+
+/* Tela inicial */
+.atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+.atalho {
+  display: block;
+  text-decoration: none;
+  color: var(--branco);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-left: 5px solid var(--amarelo);
+  border-radius: var(--raio);
+  padding: 16px;
+}
+.atalho:hover { background: #2d2d2d; }
+.atalho strong {
+  display: block;
+  font-family: var(--fonte-titulo), Impact, sans-serif;
+  font-weight: 400;
+  font-size: 1.6rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--amarelo);
+}
+
+@media (max-width: 640px) {
+  main { padding: 12px; }
+  .topo-conteudo { flex-wrap: wrap; gap: 4px 12px; }
+  .logo { height: 42px; }
+  .menu { width: 100%; flex-basis: 100%; justify-content: space-between; gap: 2px; padding-bottom: 4px; }
+  .menu a { font-size: 1rem; padding: 8px 7px; }
+  h1 { font-size: 1.9rem; }
+}
