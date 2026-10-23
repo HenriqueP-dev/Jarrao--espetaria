@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jarrão Espetaria — Wireframe Mobile (Fase 1)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for standard icon placeholders -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Strict Low-Fidelity Grayscale Theme */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc; /* Slate 50 */
+      color: #0f172a; /* Slate 900 */
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wf-card {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1; /* Slate 300 */
+      border-radius: 6px;
+    }
+    .wf-badge {
+      background-color: #e2e8f0; /* Slate 200 */
+      color: #334155; /* Slate 700 */
+      border: 1px solid #94a3b8; /* Slate 400 */
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .wf-button {
+      background-color: #e2e8f0;
+      border: 1px solid #94a3b8;
+      color: #0f172a;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      touch-action: manipulation;
+    }
+    .wf-button:active {
+      background-color: #cbd5e1;
+    }
+    .wf-button-primary {
+      background-color: #334155; /* Slate 700 */
+      color: #ffffff;
+      border: 1px solid #1e293b;
+    }
+    .wf-button-primary:active {
+      background-color: #1e293b;
+    }
+    .wf-input {
+      background-color: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    /* Mobile Drawer Sheet Animation */
+    .drawer-sheet {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(100%);
+    }
+    .drawer-sheet.open {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+
+  <!-- 1. COMPACT MOBILE HEADER -->
+  <header class="bg-white border-b border-slate-300 px-3 py-2.5 sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center justify-between">
+      <!-- Title / Brand Wireframe Badge -->
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 bg-slate-800 text-white font-bold text-xs flex items-center justify-center rounded">
+          J
+        </div>
+        <div>
+          <h1 class="font-bold text-sm leading-none text-slate-800">[JARRÃO - WIREFRAME]</h1>
+          <span class="text-[10px] text-slate-500 font-mono">Mobile First • Painel & Kanban</span>
+        </div>
+      </div>
+
+      <!-- Header Actions: Status summary & Navigation drawer toggle -->
+      <div class="flex items-center gap-2">
+        <div class="text-[11px] font-mono bg-slate-100 border border-slate-300 px-2 py-1 rounded text-slate-700">
+          <i class="fa-solid fa-chair text-slate-500"></i> 12/20
+        </div>
+        <button onclick="toggleNavDrawer()" class="wf-button p-2 py-1 text-sm bg-slate-100">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER FOR MOBILE -->
+  <main class="flex-1 p-3 flex flex-col gap-3 max-w-md mx-auto w-full">
+
+    <!-- 2. QUICK METRICS CAROUSEL / COMPACT KPIS -->
+    <section class="grid grid-cols-3 gap-2 text-center">
+      <div class="wf-card p-2 flex flex-col justify-center">
+        <span class="text-[10px] uppercase font-bold text-slate-500">Mesas</span>
+        <span class="text-base font-extrabold text-slate-800">12<span class="text-[10px] font-normal text-slate-500">/20</span></span>
+      </div>
+      <div class="wf-card p-2 flex flex-col justify-center">
+        <span class="text-[10px] uppercase font-bold text-slate-500">Abertos</span>
+        <span class="text-base font-extrabold text-slate-800" id="stat-open">9</span>
+      </div>
+      <div class="wf-card p-2 flex flex-col justify-center">
+        <span class="text-[10px] uppercase font-bold text-slate-500">Prontos</span>
+        <span class="text-base font-extrabold text-slate-800" id="stat-ready">2</span>
+      </div>
+    </section>
+
+    <!-- 3. SEARCH & QUICK SEARCH CONTROLS -->
+    <section class="flex gap-2 items-center">
+      <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+        <input type="text" id="mobile-search" onkeyup="filterMobileOrders()" placeholder="Buscar mesa, # nº ou item..." class="wf-input w-full pl-8 py-2 text-xs">
+      </div>
+      <!-- View mode toggle: Tabs vs Side-by-Side Scroll -->
+      <button onclick="toggleLayoutMode()" id="layout-toggle-btn" class="wf-button py-2 px-3 text-xs bg-white text-slate-700" title="Alternar Modo de Visualização">
+        <i class="fa-solid fa-columns"></i>
+      </button>
+    </section>
+
+    <!-- 4. KANBAN HEADER TABS (MOBILE OPTIMIZED SELECTOR) -->
+    <div id="kanban-tab-bar" class="wf-card p-1 bg-slate-200 grid grid-cols-3 gap-1 text-center font-bold text-xs sticky top-[53px] z-20">
+      <button onclick="switchTab('novos')" id="tab-btn-novos" class="py-2 rounded bg-slate-800 text-white flex items-center justify-center gap-1 transition-all">
+        <span>Novos</span>
+        <span id="badge-novos" class="bg-slate-600 text-white px-1.5 py-0.2 rounded-full text-[10px]">3</span>
+      </button>
+      <button onclick="switchTab('preparacao')" id="tab-btn-preparacao" class="py-2 rounded text-slate-700 hover:bg-slate-300 flex items-center justify-center gap-1 transition-all">
+        <span>Preparo</span>
+        <span id="badge-preparacao" class="bg-slate-300 text-slate-800 px-1.5 py-0.2 rounded-full text-[10px]">4</span>
+      </button>
+      <button onclick="switchTab('prontos')" id="tab-btn-prontos" class="py-2 rounded text-slate-700 hover:bg-slate-300 flex items-center justify-center gap-1 transition-all">
+        <span>Prontos</span>
+        <span id="badge-prontos" class="bg-slate-300 text-slate-800 px-1.5 py-0.2 rounded-full text-[10px]">2</span>
+      </button>
+    </div>
+
+    <!-- 5. KANBAN COLUMNS CONTAINER -->
+    <!-- Mode A: Single active tab displayed (Default Mobile) | Mode B: Horizontal Scroll Columns -->
+    <div id="kanban-container" class="flex flex-col gap-3 min-h-[380px]">
+
+      <!-- COLUNA 1: NOVOS -->
+      <div id="col-novos" class="kanban-col flex flex-col gap-2.5">
+        
+        <!-- Order Card 104 -->
+        <div id="card-104" data-type="SALAO" data-search="mesa 05 cupim jantinha" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-700">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Mesa 05</span>
+                <span class="wf-badge">Ped #104</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Garçom: Roberto • Salão</span>
+            </div>
+            <span class="wf-badge text-red-700 bg-red-50 border-red-300 font-mono">Há 3 min</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1.5 text-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">2x Espeto Cupim c/ Alho</span>
+              <span class="wf-badge text-[10px]">Churrasco</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>1x Jantinha Completa</span>
+              <span class="wf-badge text-[10px]">Churrasco</span>
+            </div>
+            <div class="text-[11px] text-slate-500 italic bg-slate-50 p-1 rounded border border-slate-200">
+              Obs: Carne bem passada, feijão sem cheiro verde.
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="openSheet('104')" class="wf-button bg-white text-xs py-1.5 px-3">
+              <i class="fa-solid fa-list-check"></i> Detalhes
+            </button>
+            <button onclick="moveCard('104', 'preparacao')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <span>Iniciar Preparo</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Order Card 105 -->
+        <div id="card-105" data-type="DELIVERY" data-search="balcao 12 retirada frango medalhao" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-500">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Balcão (Sr. Marcos)</span>
+                <span class="wf-badge">Ped #105</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Retirada • Pago</span>
+            </div>
+            <span class="wf-badge font-mono">Há 1 min</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1 text-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">1x Jantinha Medalhão Frango</span>
+              <span class="wf-badge text-[10px]">Churrasco</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>1x Coca-Cola 2L</span>
+              <span class="wf-badge text-[10px]">Bar</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="openSheet('105')" class="wf-button bg-white text-xs py-1.5 px-3">
+              <i class="fa-solid fa-list-check"></i> Detalhes
+            </button>
+            <button onclick="moveCard('105', 'preparacao')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <span>Iniciar Preparo</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Order Card 106 -->
+        <div id="card-106" data-type="SALAO" data-search="mesa 09 mandioca batata fritas" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-700">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Mesa 09</span>
+                <span class="wf-badge">Ped #106</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Garçom: Ana • Salão</span>
+            </div>
+            <span class="wf-badge font-mono">Há 30 seg</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1 text-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">1x Porção Mandioca c/ Bacon</span>
+              <span class="wf-badge text-[10px]">Cozinha</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="openSheet('106')" class="wf-button bg-white text-xs py-1.5 px-3">
+              <i class="fa-solid fa-list-check"></i> Detalhes
+            </button>
+            <button onclick="moveCard('106', 'preparacao')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <span>Iniciar Preparo</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUNA 2: EM PREPARAÇÃO -->
+      <div id="col-preparacao" class="kanban-col flex flex-col gap-2.5 hidden">
+        
+        <!-- Order Card 102 -->
+        <div id="card-102" data-type="SALAO" data-search="mesa 02 jantinha linguiça pão alho" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-700">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Mesa 02</span>
+                <span class="wf-badge">Ped #102</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Garçom: Roberto • Em Grelha</span>
+            </div>
+            <span class="wf-badge font-mono text-amber-700 bg-amber-50 border-amber-300">Há 12 min</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1 text-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">1x Jantinha Linguiça Cuiabana</span>
+              <span class="wf-badge text-[10px] bg-slate-200">Grelha</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>2x Pão de Alho Especial</span>
+              <span class="wf-badge text-[10px] bg-slate-200">Grelha</span>
+            </div>
+          </div>
+
+          <!-- Mobile Progress Indicator -->
+          <div class="w-full bg-slate-200 h-1.5 rounded overflow-hidden my-1">
+            <div class="bg-slate-700 h-full w-3/4"></div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="moveCard('102', 'novos')" class="wf-button bg-white text-xs py-1.5 px-2.5" title="Voltar">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="openSheet('102')" class="wf-button bg-white text-xs py-1.5 px-3">
+              Detalhes
+            </button>
+            <button onclick="moveCard('102', 'prontos')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <span>Pronto</span> <i class="fa-solid fa-check text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Order Card 103 -->
+        <div id="card-103" data-type="SALAO" data-search="mesa 10 batata frango picanha" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-700">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Mesa 10</span>
+                <span class="wf-badge">Ped #103</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Garçom: Ana • Cozinha/Grelha</span>
+            </div>
+            <span class="wf-badge font-mono">Há 8 min</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1 text-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">1x Porção Batata c/ Queijo</span>
+              <span class="wf-badge text-[10px]">Fritadeira</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>2x Espeto Picanha Nobre</span>
+              <span class="wf-badge text-[10px]">Grelha</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="moveCard('103', 'novos')" class="wf-button bg-white text-xs py-1.5 px-2.5">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="openSheet('103')" class="wf-button bg-white text-xs py-1.5 px-3">
+              Detalhes
+            </button>
+            <button onclick="moveCard('103', 'prontos')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <span>Pronto</span> <i class="fa-solid fa-check text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUNA 3: PRONTOS -->
+      <div id="col-prontos" class="kanban-col flex flex-col gap-2.5 hidden">
+        
+        <!-- Order Card 100 -->
+        <div id="card-100" data-type="SALAO" data-search="mesa 08 cerveja espeto frango" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-900 bg-slate-50">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Mesa 08</span>
+                <span class="wf-badge">Ped #100</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Pronto na Bandeja</span>
+            </div>
+            <span class="wf-badge text-green-800 bg-green-50 border-green-300 font-bold">PRONTO</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1 text-slate-500 line-through">
+            <div class="flex justify-between items-center">
+              <span>2x Cerveja Original 600ml</span>
+              <i class="fa-solid fa-check text-[10px]"></i>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>1x Espeto Frango c/ Bacon</span>
+              <i class="fa-solid fa-check text-[10px]"></i>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="moveCard('100', 'preparacao')" class="wf-button bg-white text-xs py-1.5 px-2.5">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="openSheet('100')" class="wf-button bg-white text-xs py-1.5 px-3">
+              Detalhes
+            </button>
+            <button onclick="completeOrder('100')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <i class="fa-solid fa-check-double"></i> <span>Entregar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Order Card 101 -->
+        <div id="card-101" data-type="SALAO" data-search="mesa 01 suco refri" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-900 bg-slate-50">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">Mesa 01</span>
+                <span class="wf-badge">Ped #101</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Aguardando Garçom</span>
+            </div>
+            <span class="wf-badge text-green-800 bg-green-50 border-green-300 font-bold">PRONTO</span>
+          </div>
+
+          <div class="py-2 text-xs space-y-1 text-slate-500 line-through">
+            <div class="flex justify-between items-center">
+              <span>1x Suco Laranja 500ml</span>
+              <i class="fa-solid fa-check text-[10px]"></i>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="moveCard('101', 'preparacao')" class="wf-button bg-white text-xs py-1.5 px-2.5">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="openSheet('101')" class="wf-button bg-white text-xs py-1.5 px-3">
+              Detalhes
+            </button>
+            <button onclick="completeOrder('101')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1">
+              <i class="fa-solid fa-check-double"></i> <span>Entregar</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- WIREFRAME DIRECTIVES BOX FOR MOBILE -->
+    <section class="wf-card p-3 bg-white mt-2 border-slate-300 text-xs text-slate-600">
+      <div class="font-bold text-slate-800 flex items-center justify-between mb-1">
+        <span><i class="fa-solid fa-mobile-screen"></i> Validação Mobile (Fase 1)</span>
+        <span class="wf-badge">Wireframe Low-Fi</span>
+      </div>
+      <p class="leading-relaxed text-[11px]">
+        Interface em coluna única projetada para telas touch. O seletor superior de abas elimina o scroll horizontal desconfortável, mantendo botões amplos para acionamento por polegar.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- 6. FIXED BOTTOM TOUCH BAR FOR PRIMARY ACTION -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-300 p-2.5 z-30 shadow-lg">
+    <div class="max-w-md mx-auto flex items-center justify-between gap-2">
+      <!-- Main Thumb-Friendly Button -->
+      <button onclick="openNewOrderSheet()" class="wf-button wf-button-primary w-full py-3 text-sm flex items-center justify-center gap-2 shadow-md">
+        <i class="fa-solid fa-plus text-base"></i>
+        <span>+ NOVO PEDIDO (F2)</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- 7. BOTTOM SHEET DRAWER: DETALHES DO PEDIDO (SLIDE UP) -->
+  <div id="drawer-backdrop" onclick="closeSheet()" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+  
+  <div id="sheet-order-detail" class="drawer-sheet fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-400 rounded-t-xl z-50 p-4 max-w-md mx-auto max-h-[85vh] overflow-y-auto shadow-2xl">
+    <!-- Sheet Drag Handle -->
+    <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-3"></div>
+
+    <!-- Header Sheet -->
+    <div class="flex justify-between items-start pb-3 border-b border-slate-200">
+      <div>
+        <h3 class="font-extrabold text-base text-slate-900" id="sheet-title">Mesa 05 — Pedido #104</h3>
+        <span class="text-xs text-slate-500 font-mono" id="sheet-subtitle">Garçom: Roberto • Criado há 3 minutos</span>
+      </div>
+      <button onclick="closeSheet()" class="p-1 text-slate-400 hover:text-slate-700 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Sheet Content -->
+    <div class="py-3 space-y-3 text-xs">
+
+      <!-- Status Summary -->
+      <div class="p-2.5 bg-slate-100 border border-slate-300 rounded flex justify-between items-center font-mono">
+        <div>
+          <span class="text-slate-500 block text-[10px]">SITUAÇÃO ATUAL</span>
+          <span class="font-bold text-slate-800 text-xs" id="sheet-status-tag">1. Novos (Em Fila)</span>
+        </div>
+        <span class="wf-badge bg-white">Churrasqueira: 2x</span>
+      </div>
+
+      <!-- Items List -->
+      <div>
+        <h4 class="font-bold text-slate-700 uppercase text-[10px] tracking-wider mb-1.5">Itens do Pedido</h4>
+        <div class="space-y-1.5" id="sheet-items-container">
+          <div class="p-2 bg-slate-50 border border-slate-200 rounded flex justify-between items-start">
+            <div>
+              <span class="font-bold text-slate-900">2x Espeto Cupim c/ Alho</span>
+              <span class="block text-[10px] text-slate-500">Ponto: Bem passado</span>
+            </div>
+            <span class="font-mono font-semibold text-slate-700">R$ 28,00</span>
+          </div>
+
+          <div class="p-2 bg-slate-50 border border-slate-200 rounded flex justify-between items-start">
+            <div>
+              <span class="font-bold text-slate-900">1x Jantinha Completa</span>
+              <span class="block text-[10px] text-slate-500">Feijão tropeiro, vinagrete, mandioca</span>
+            </div>
+            <span class="font-mono font-semibold text-slate-700">R$ 22,00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Totals Summary -->
+      <div class="p-2.5 bg-slate-50 border border-slate-200 rounded space-y-1">
+        <div class="flex justify-between text-slate-600">
+          <span>Subtotal:</span>
+          <span class="font-mono">R$ 50,00</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span>Serviço (10%):</span>
+          <span class="font-mono">R$ 5,00</span>
+        </div>
+        <div class="flex justify-between font-bold text-slate-900 text-sm border-t border-slate-200 pt-1">
+          <span>Total:</span>
+          <span class="font-mono">R$ 55,00</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls for Mobile -->
+      <div class="pt-2 space-y-2">
+        <button onclick="alert('Wireframe: Ação para adicionar mais itens à comanda da mesa.')" class="wf-button bg-white text-xs w-full py-2.5">
+          <i class="fa-solid fa-plus"></i> Adicionar Mais Itens
+        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="alert('Wireframe: Reimpressão da via de cozinha/churrasqueira.')" class="wf-button bg-white text-xs py-2">
+            <i class="fa-solid fa-print"></i> Reimprimir Via
+          </button>
+          <button onclick="alert('Wireframe: Cancelamento com exigência de motivo gerencial.')" class="wf-button bg-white text-xs text-red-700 border-red-300 py-2">
+            <i class="fa-solid fa-ban"></i> Cancelar Pedido
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sheet Footer -->
+    <div class="pt-2 border-t border-slate-200">
+      <button onclick="closeSheet()" class="wf-button wf-button-primary w-full py-2.5">Fechar</button>
+    </div>
+  </div>
+
+  <!-- 8. BOTTOM SHEET DRAWER: NOVO PEDIDO -->
+  <div id="sheet-new-order" class="drawer-sheet fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-400 rounded-t-xl z-50 p-4 max-w-md mx-auto max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-3"></div>
+
+    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+      <h3 class="font-extrabold text-base text-slate-900">+ Criar Novo Pedido</h3>
+      <button onclick="closeNewOrderSheet()" class="p-1 text-slate-400 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <form onsubmit="handleMobileCreateOrder(event)" class="py-3 space-y-3 text-xs">
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Tipo de Atendimento</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="wf-card p-2 text-center cursor-pointer flex items-center justify-center gap-2 border-2 border-slate-700">
+            <input type="radio" name="order-type" value="SALAO" checked class="accent-slate-800">
+            <span class="font-bold text-slate-800">Mesa (Salão)</span>
+          </label>
+          <label class="wf-card p-2 text-center cursor-pointer flex items-center justify-center gap-2">
+            <input type="radio" name="order-type" value="DELIVERY" class="accent-slate-800">
+            <span class="font-bold text-slate-800">Balcão / Delivery</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Identificação da Mesa / Cliente</label>
+        <input type="text" id="mobile-order-ref" required placeholder="Ex: Mesa 07 ou Nome do Cliente" class="wf-input w-full">
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Seleção de Produtos</label>
+        <div class="space-y-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 border border-slate-200 rounded">
+          <label class="flex items-center justify-between p-2 bg-white rounded border border-slate-200">
+            <span>1x Jantinha Completa (Picanha)</span>
+            <input type="checkbox" checked class="w-4 h-4 accent-slate-800">
+          </label>
+          <label class="flex items-center justify-between p-2 bg-white rounded border border-slate-200">
+            <span>2x Espeto Cupim c/ Alho</span>
+            <input type="checkbox" checked class="w-4 h-4 accent-slate-800">
+          </label>
+          <label class="flex items-center justify-between p-2 bg-white rounded border border-slate-200">
+            <span>1x Cerveja Original 600ml</span>
+            <input type="checkbox" class="w-4 h-4 accent-slate-800">
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Observações da Churrasqueira</label>
+        <input type="text" placeholder="Ex: Ponto da carne, sem mandioca..." class="wf-input w-full">
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 flex gap-2">
+        <button type="button" onclick="closeNewOrderSheet()" class="wf-button bg-white flex-1 py-2.5">Cancelar</button>
+        <button type="submit" class="wf-button wf-button-primary flex-1 py-2.5">Confirmar Pedido</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 9. NAVIGATION MENU DRAWER MOBILE -->
+  <div id="nav-drawer" class="drawer-sheet fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-400 rounded-t-xl z-50 p-4 max-w-md mx-auto shadow-2xl">
+    <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-3"></div>
+    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+      <h3 class="font-extrabold text-sm text-slate-900">Módulos do Sistema Jarrão</h3>
+      <button onclick="toggleNavDrawer()" class="text-slate-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="py-3 grid grid-cols-2 gap-2 text-xs">
+      <button class="wf-button wf-button-primary justify-start py-2.5">
+        <i class="fa-solid fa-table-columns"></i> Painel / Kanban
+      </button>
+      <button class="wf-button bg-slate-100 justify-start py-2.5 opacity-50 cursor-not-allowed">
+        <i class="fa-solid fa-utensils"></i> Cozinha
+      </button>
+      <button class="wf-button bg-slate-100 justify-start py-2.5 opacity-50 cursor-not-allowed">
+        <i class="fa-solid fa-fire"></i> Churrasqueira
+      </button>
+      <button class="wf-button bg-slate-100 justify-start py-2.5 opacity-50 cursor-not-allowed">
+        <i class="fa-solid fa-chair"></i> Mesas
+      </button>
+      <button class="wf-button bg-slate-100 justify-start py-2.5 opacity-50 cursor-not-allowed">
+        <i class="fa-solid fa-cash-register"></i> Caixa
+      </button>
+      <button class="wf-button bg-slate-100 justify-start py-2.5 opacity-50 cursor-not-allowed">
+        <i class="fa-solid fa-chart-line"></i> Relatórios
+      </button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC FOR MOBILE INTERACTION -->
+  <script>
+    let activeTab = 'novos';
+    let isSideBySide = false;
+
+    // Switch active Mobile Kanban Tab
+    function switchTab(tabName) {
+      if (isSideBySide) return; // Tab switching disabled in side-by-side mode
+
+      activeTab = tabName;
+      
+      // Update Tab Styles
+      ['novos', 'preparacao', 'prontos'].forEach(t => {
+        const btn = document.getElementById('tab-btn-' + t);
+        const col = document.getElementById('col-' + t);
+        const badge = document.getElementById('badge-' + t);
+
+        if (t === tabName) {
+          btn.className = "py-2 rounded bg-slate-800 text-white flex items-center justify-center gap-1 transition-all";
+          badge.className = "bg-slate-600 text-white px-1.5 py-0.2 rounded-full text-[10px]";
+          col.classList.remove('hidden');
+        } else {
+          btn.className = "py-2 rounded text-slate-700 hover:bg-slate-300 flex items-center justify-center gap-1 transition-all";
+          badge.className = "bg-slate-300 text-slate-800 px-1.5 py-0.2 rounded-full text-[10px]";
+          col.classList.add('hidden');
+        }
+      });
+    }
+
+    // Toggle Side-By-Side horizontal layout on mobile
+    function toggleLayoutMode() {
+      const container = document.getElementById('kanban-container');
+      const tabBar = document.getElementById('kanban-tab-bar');
+      const toggleBtn = document.getElementById('layout-toggle-btn');
+
+      isSideBySide = !isSideBySide;
+
+      if (isSideBySide) {
+        // Show all columns side-by-side horizontally
+        ['novos', 'preparacao', 'prontos'].forEach(t => {
+          document.getElementById('col-' + t).classList.remove('hidden');
+        });
+        container.className = "flex overflow-x-auto gap-3 pb-2 snap-x min-h-[380px]";
+        ['novos', 'preparacao', 'prontos'].forEach(t => {
+          document.getElementById('col-' + t).classList.add('min-w-[270px]', 'snap-center');
+        });
+        tabBar.classList.add('opacity-40', 'pointer-events-none');
+        toggleBtn.classList.add('bg-slate-700', 'text-white');
+      } else {
+        // Restore tabbed view
+        container.className = "flex flex-col gap-3 min-h-[380px]";
+        ['novos', 'preparacao', 'prontos'].forEach(t => {
+          document.getElementById('col-' + t).classList.remove('min-w-[270px]', 'snap-center');
+        });
+        tabBar.classList.remove('opacity-40', 'pointer-events-none');
+        toggleBtn.classList.remove('bg-slate-700', 'text-white');
+        switchTab(activeTab);
+      }
+    }
+
+    // Move Card between Kanban States
+    function moveCard(cardId, targetCol) {
+      const card = document.getElementById('card-' + cardId);
+      const targetContainer = document.getElementById('col-' + targetCol);
+      if (!card || !targetContainer) return;
+
+      const actionFooter = card.querySelector('.pt-2');
+
+      if (targetCol === 'novos') {
+        actionFooter.innerHTML = `
+          <button onclick="openSheet('${cardId}')" class="wf-button bg-white text-xs py-1.5 px-3"><i class="fa-solid fa-list-check"></i> Detalhes</button>
+          <button onclick="moveCard('${cardId}', 'preparacao')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1"><span>Iniciar Preparo</span> <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+        `;
+      } else if (targetCol === 'preparacao') {
+        actionFooter.innerHTML = `
+          <button onclick="moveCard('${cardId}', 'novos')" class="wf-button bg-white text-xs py-1.5 px-2.5"><i class="fa-solid fa-chevron-left"></i></button>
+          <button onclick="openSheet('${cardId}')" class="wf-button bg-white text-xs py-1.5 px-3">Detalhes</button>
+          <button onclick="moveCard('${cardId}', 'prontos')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1"><span>Pronto</span> <i class="fa-solid fa-check text-[10px]"></i></button>
+        `;
+      } else if (targetCol === 'prontos') {
+        actionFooter.innerHTML = `
+          <button onclick="moveCard('${cardId}', 'preparacao')" class="wf-button bg-white text-xs py-1.5 px-2.5"><i class="fa-solid fa-chevron-left"></i></button>
+          <button onclick="openSheet('${cardId}')" class="wf-button bg-white text-xs py-1.5 px-3">Detalhes</button>
+          <button onclick="completeOrder('${cardId}')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1"><i class="fa-solid fa-check-double"></i> <span>Entregar</span></button>
+        `;
+      }
+
+      targetContainer.appendChild(card);
+      updateMobileCounts();
+
+      // Automatically switch to target tab if in tab mode
+      if (!isSideBySide) {
+        switchTab(targetCol);
+      }
+    }
+
+    // Complete / Deliver Order
+    function completeOrder(cardId) {
+      const card = document.getElementById('card-' + cardId);
+      if (card) {
+        card.style.opacity = '0.3';
+        setTimeout(() => {
+          card.remove();
+          updateMobileCounts();
+        }, 250);
+      }
+    }
+
+    // Update Counts & Badges
+    function updateMobileCounts() {
+      const novos = document.getElementById('col-novos').querySelectorAll('[id^="card-"]').length;
+      const prep = document.getElementById('col-preparacao').querySelectorAll('[id^="card-"]').length;
+      const prontos = document.getElementById('col-prontos').querySelectorAll('[id^="card-"]').length;
+
+      document.getElementById('badge-novos').innerText = novos;
+      document.getElementById('badge-preparacao').innerText = prep;
+      document.getElementById('badge-prontos').innerText = prontos;
+
+      document.getElementById('stat-open').innerText = novos + prep + prontos;
+      document.getElementById('stat-ready').innerText = prontos;
+    }
+
+    // Search Filter
+    function filterMobileOrders() {
+      const query = document.getElementById('mobile-search').value.toLowerCase();
+      const cards = document.querySelectorAll('[id^="card-"]');
+
+      cards.forEach(card => {
+        const text = card.getAttribute('data-search').toLowerCase();
+        if (text.includes(query)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    // Bottom Sheet Drawers Handlers
+    function openSheet(orderId) {
+      document.getElementById('sheet-title').innerText = 'Detalhes — Pedido #' + orderId;
+      document.getElementById('drawer-backdrop').classList.remove('hidden');
+      document.getElementById('sheet-order-detail').classList.add('open');
+    }
+
+    function closeSheet() {
+      document.getElementById('drawer-backdrop').classList.add('hidden');
+      document.getElementById('sheet-order-detail').classList.remove('open');
+      document.getElementById('sheet-new-order').classList.remove('open');
+      document.getElementById('nav-drawer').classList.remove('open');
+    }
+
+    function openNewOrderSheet() {
+      document.getElementById('drawer-backdrop').classList.remove('hidden');
+      document.getElementById('sheet-new-order').classList.add('open');
+    }
+
+    function closeNewOrderSheet() {
+      closeSheet();
+    }
+
+    function toggleNavDrawer() {
+      const drawer = document.getElementById('nav-drawer');
+      const backdrop = document.getElementById('drawer-backdrop');
+      if (drawer.classList.contains('open')) {
+        closeSheet();
+      } else {
+        backdrop.classList.remove('hidden');
+        drawer.classList.add('open');
+      }
+    }
+
+    // Handle Mobile New Order Submission
+    function handleMobileCreateOrder(e) {
+      e.preventDefault();
+      const ref = document.getElementById('mobile-order-ref').value;
+      const newId = Math.floor(107 + Math.random() * 40);
+
+      const cardHTML = `
+        <div id="card-${newId}" data-type="SALAO" data-search="${ref.toLowerCase()} jantinha cupim" class="wf-card p-3 shadow-sm border-l-4 border-l-slate-700">
+          <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-slate-900">${ref}</span>
+                <span class="wf-badge">Ped #${newId}</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">Salão • Novo</span>
+            </div>
+            <span class="wf-badge font-mono">Há 0 min</span>
+          </div>
+          <div class="py-2 text-xs space-y-1 text-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">1x Jantinha Completa</span>
+              <span class="wf-badge text-[10px]">Churrasco</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>2x Espeto Cupim</span>
+              <span class="wf-badge text-[10px]">Churrasco</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+            <button onclick="openSheet('${newId}')" class="wf-button bg-white text-xs py-1.5 px-3"><i class="fa-solid fa-list-check"></i> Detalhes</button>
+            <button onclick="moveCard('${newId}', 'preparacao')" class="wf-button wf-button-primary text-xs py-1.5 px-3 flex-1"><span>Iniciar Preparo</span> <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('col-novos').insertAdjacentHTML('afterbegin', cardHTML);
+      closeSheet();
+      document.getElementById('mobile-order-ref').value = '';
+      updateMobileCounts();
+      switchTab('novos');
+    }
+  </script>
+</body>
+</html>

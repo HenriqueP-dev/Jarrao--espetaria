@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jarrão Espetaria — Churrasqueira (Painel de Controle High-Vis)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for Standard High-Contrast Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Strict High-Visibility Monochromatic / Low-Fidelity Theme */
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f1f5f9; /* Slate 100 */
+      color: #020617; /* Slate 950 */
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wf-card {
+      background-color: #ffffff;
+      border: 3px solid #0f172a; /* Slate 900 - Thick high contrast borders */
+      border-radius: 8px;
+    }
+    .wf-badge-black {
+      background-color: #0f172a;
+      color: #ffffff;
+      font-weight: 800;
+      font-family: monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .wf-badge-gray {
+      background-color: #e2e8f0;
+      color: #0f172a;
+      border: 1.5px solid #0f172a;
+      font-weight: 700;
+      font-family: monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .wf-action-btn {
+      background-color: #0f172a;
+      color: #ffffff;
+      border: 2px solid #0f172a;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      border-radius: 6px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      touch-action: manipulation;
+    }
+    .wf-action-btn:active {
+      background-color: #334155;
+    }
+    .wf-action-btn-secondary {
+      background-color: #ffffff;
+      color: #0f172a;
+      border: 2px solid #0f172a;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      border-radius: 6px;
+    }
+    .wf-action-btn-secondary:active {
+      background-color: #e2e8f0;
+    }
+    .wf-input {
+      background-color: #ffffff;
+      border: 2px solid #0f172a;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    /* Touch target enhancement for checkboxes */
+    .touch-checkbox {
+      width: 24px;
+      height: 24px;
+      accent-color: #0f172a;
+      cursor: pointer;
+    }
+    /* Bottom Sheet Animation */
+    .drawer-sheet {
+      transition: transform 0.2s ease-out;
+      transform: translateY(100%);
+    }
+    .drawer-sheet.open {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+
+  <!-- 1. TOP HEADER (HIGH-VISIBILITY & COMPACT) -->
+  <header class="bg-slate-950 text-white px-3 py-3 sticky top-0 z-30 shadow-md border-b-4 border-slate-700">
+    <div class="max-w-md mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-white text-slate-950 font-black text-lg flex items-center justify-center rounded">
+          <i class="fa-solid fa-fire text-base"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-sm tracking-wide leading-tight uppercase">CHURRASQUEIRA — PAINEL DE CONTROLE</h1>
+          <span class="text-[11px] font-mono font-bold text-slate-300">MODO VISIBILIDADE MAXIMA (FASE 1)</span>
+        </div>
+      </div>
+
+      <!-- Live Count Summary Badge -->
+      <div class="text-right">
+        <span class="bg-white text-slate-950 font-black text-sm px-2.5 py-1 rounded font-mono block" id="header-total-count">
+          13 ESPETOS
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 p-3 flex flex-col gap-4 max-w-md mx-auto w-full">
+
+    <!-- 2. "GRELHA EM TEMPO REAL" (TOTALIZADOR DE ESPETOS AO VIVO) -->
+    <section class="wf-card p-3 bg-white shadow-sm border-3 border-slate-900">
+      <!-- Section Header -->
+      <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2 mb-2">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-slate-950 text-base"></i>
+          <h2 class="font-black text-xs uppercase tracking-wider text-slate-950">GRELHA EM TEMPO REAL (TOTAL AO VIVO)</h2>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-slate-200 px-1.5 py-0.5 rounded border border-slate-900">BRASA ATIVA</span>
+      </div>
+
+      <!-- High-Visibility Aggregated Item Blocks -->
+      <div class="grid grid-cols-2 gap-2 text-slate-950" id="live-grill-summary">
+        <div class="p-2.5 bg-slate-100 border-2 border-slate-900 rounded flex items-center justify-between">
+          <span class="font-extrabold text-xs uppercase">JANTINHA CUPIM</span>
+          <span class="font-black text-lg font-mono bg-slate-950 text-white px-2 py-0.5 rounded" id="sum-jant-cupim">5x</span>
+        </div>
+
+        <div class="p-2.5 bg-slate-100 border-2 border-slate-900 rounded flex items-center justify-between">
+          <span class="font-extrabold text-xs uppercase">ESPETO PICANHA</span>
+          <span class="font-black text-lg font-mono bg-slate-950 text-white px-2 py-0.5 rounded" id="sum-esp-picanha">4x</span>
+        </div>
+
+        <div class="p-2.5 bg-slate-100 border-2 border-slate-900 rounded flex items-center justify-between">
+          <span class="font-extrabold text-xs uppercase">LINGUIÇA C/ QUEIJO</span>
+          <span class="font-black text-lg font-mono bg-slate-950 text-white px-2 py-0.5 rounded" id="sum-lingui-queijo">2x</span>
+        </div>
+
+        <div class="p-2.5 bg-slate-100 border-2 border-slate-900 rounded flex items-center justify-between">
+          <span class="font-extrabold text-xs uppercase">FRANGO BACON</span>
+          <span class="font-black text-lg font-mono bg-slate-950 text-white px-2 py-0.5 rounded" id="sum-frango-bacon">2x</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. CONTROLS: SEARCH & SECTOR FILTER TABS -->
+    <section class="flex flex-col gap-2">
+      <!-- Search Input -->
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-950 font-bold text-sm"></i>
+        <input type="text" id="grill-search" onkeyup="filterGrillCards()" placeholder="BUSCAR MESA (#), CORTE OU OBS..." class="wf-input w-full pl-10 uppercase placeholder:normal-case font-bold">
+      </div>
+
+      <!-- Sector Tab Switcher -->
+      <div class="grid grid-cols-4 gap-1 bg-slate-300 p-1 rounded-md text-xs font-black text-center border-2 border-slate-900">
+        <button onclick="setTab('TODOS')" id="tab-todos" class="py-2 rounded bg-slate-950 text-white transition-all">
+          TODOS (4)
+        </button>
+        <button onclick="setTab('PENDENTES')" id="tab-pendentes" class="py-2 rounded text-slate-950 hover:bg-slate-200 transition-all">
+          ESPERA (2)
+        </button>
+        <button onclick="setTab('ASSANDO')" id="tab-assando" class="py-2 rounded text-slate-950 hover:bg-slate-200 transition-all">
+          ASSANDO (2)
+        </button>
+        <button onclick="setTab('PRONTOS')" id="tab-prontos" class="py-2 rounded text-slate-950 hover:bg-slate-200 transition-all">
+          PRONTOS (0)
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. TICKET LIST (HIGH-CONTRAST BLOCK CARDS) -->
+    <section id="grill-tickets-list" class="flex flex-col gap-4">
+
+      <!-- TICKET #101: MESA 04 (EM ESPERA - URGENTE) -->
+      <div id="ticket-101" data-search="mesa 04 jantinha cupim picanha" data-status="PENDENTES" class="wf-card p-3 shadow-md flex flex-col gap-3">
+        <!-- High Contrast Top Status Bar -->
+        <div class="bg-slate-200 text-slate-950 p-1.5 rounded border border-slate-900 font-mono font-black text-xs flex justify-between items-center">
+          <span>STATUS: [ 1. EM ESPERA ]</span>
+          <span class="bg-slate-950 text-white px-2 py-0.5 rounded text-[11px]">FILA DE ESPERA</span>
+        </div>
+
+        <!-- Card Header: Large Mesa Number & Timer Badge -->
+        <div class="flex justify-between items-start pb-2 border-b-2 border-slate-900">
+          <div>
+            <h3 class="font-black text-2xl tracking-tight text-slate-950 leading-none">MESA 04</h3>
+            <span class="text-xs font-mono font-bold text-slate-600">PEDIDO #101 • SALÃO</span>
+          </div>
+          <div class="text-right">
+            <span class="wf-badge-black text-sm block">12 MIN</span>
+            <span class="text-[10px] font-mono font-bold text-slate-500">ENTRADA: 19:40</span>
+          </div>
+        </div>
+
+        <!-- Items Checklist Stream -->
+        <div class="space-y-2 text-xs font-bold text-slate-950">
+          <!-- Item 1: Jantinha Completa -->
+          <div class="p-2.5 grill-item-row bg-slate-50 border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">1x JANTINHA COMPLETA — CUPIM</span>
+              <span class="wf-badge-gray text-[10px]">JANTINHA</span>
+            </div>
+            <!-- Doneness Badge -->
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-950 text-white font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: BEM PASSADA
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+            <!-- Sides Note -->
+            <div class="text-[11px] text-slate-700 font-mono pt-1 border-t border-slate-300">
+              Acompanha: Feijão Tropeiro, Mandioca, Vinagrete, Farofa.
+            </div>
+          </div>
+
+          <!-- Item 2: Espeto Picanha -->
+          <div class="p-2.5 grill-item-row bg-slate-50 border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">1x ESPETO PICANHA NOBRE</span>
+              <span class="wf-badge-gray text-[10px]">ESPETO</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-200 text-slate-950 border border-slate-900 font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: AO PONTO
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+
+          <!-- Ticket Notes -->
+          <div class="p-2 bg-slate-100 border border-slate-900 rounded font-mono text-[11px]">
+            <i class="fa-solid fa-comment"></i> OBS: Cupim bem assado na ponta.
+          </div>
+        </div>
+
+        <!-- Big Action Button -->
+        <div class="pt-1">
+          <button onclick="advanceTicketState('101')" class="wf-action-btn">
+            <span>AVANÇAR PARA: ASSANDO</span> <i class="fa-solid fa-fire-burner"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- TICKET #102: DELIVERY #12 (EM ESPERA) -->
+      <div id="ticket-102" data-search="delivery 12 balcao jantinha cupim frango bacon" data-status="PENDENTES" class="wf-card p-3 shadow-md flex flex-col gap-3">
+        <div class="bg-slate-200 text-slate-950 p-1.5 rounded border border-slate-900 font-mono font-black text-xs flex justify-between items-center">
+          <span>STATUS: [ 1. EM ESPERA ]</span>
+          <span class="bg-slate-950 text-white px-2 py-0.5 rounded text-[11px]">BALCÃO / RETIRADA</span>
+        </div>
+
+        <div class="flex justify-between items-start pb-2 border-b-2 border-slate-900">
+          <div>
+            <h3 class="font-black text-2xl tracking-tight text-slate-950 leading-none">DELIVERY #12</h3>
+            <span class="text-xs font-mono font-bold text-slate-600">PEDIDO #102 • CLIENTE: CARLOS</span>
+          </div>
+          <div class="text-right">
+            <span class="wf-badge-black text-sm block">05 MIN</span>
+            <span class="text-[10px] font-mono font-bold text-slate-500">ENTRADA: 19:47</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs font-bold text-slate-950">
+          <div class="p-2.5 grill-item-row bg-slate-50 border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">2x JANTINHA COMPLETA — CUPIM</span>
+              <span class="wf-badge-gray text-[10px]">2 UNIDADES</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-950 text-white font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: AO PONTO
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+
+          <div class="p-2.5 grill-item-row bg-slate-50 border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">1x ESPETO FRANGO C/ BACON</span>
+              <span class="wf-badge-gray text-[10px]">ESPETO</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-200 text-slate-950 border border-slate-900 font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: BEM PASSADA
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-1">
+          <button onclick="advanceTicketState('102')" class="wf-action-btn">
+            <span>AVANÇAR PARA: ASSANDO</span> <i class="fa-solid fa-fire-burner"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- TICKET #099: MESA 08 (JÁ ASSANDO NA GRELHA 🔥) -->
+      <div id="ticket-099" data-search="mesa 08 espeto picanha linguiça queijo" data-status="ASSANDO" class="wf-card p-3 shadow-md flex flex-col gap-3 bg-slate-50">
+        <div class="bg-slate-950 text-white p-1.5 rounded border border-slate-900 font-mono font-black text-xs flex justify-between items-center">
+          <span>STATUS: [ 2. ASSANDO NA GRELHA 🔥 ]</span>
+          <span class="bg-white text-slate-950 px-2 py-0.5 rounded text-[11px] font-bold">EM PRODUÇÃO</span>
+        </div>
+
+        <div class="flex justify-between items-start pb-2 border-b-2 border-slate-900">
+          <div>
+            <h3 class="font-black text-2xl tracking-tight text-slate-950 leading-none">MESA 08</h3>
+            <span class="text-xs font-mono font-bold text-slate-600">PEDIDO #099 • SALÃO</span>
+          </div>
+          <div class="text-right">
+            <span class="wf-badge-gray text-sm block">15 MIN</span>
+            <span class="text-[10px] font-mono font-bold text-slate-500">ENTRADA: 19:37</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs font-bold text-slate-950">
+          <div class="p-2.5 grill-item-row bg-white border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">2x ESPETO PICANHA NOBRE</span>
+              <span class="wf-badge-gray text-[10px]">GRELHA</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-200 text-slate-950 border border-slate-900 font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: MAL PASSADA
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" checked onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+
+          <div class="p-2.5 grill-item-row bg-white border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">2x LINGUIÇA COM QUEIJO</span>
+              <span class="wf-badge-gray text-[10px]">GRELHA</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-200 text-slate-950 border border-slate-900 font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: BEM PASSADA
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-1">
+          <button onclick="advanceTicketState('099')" class="wf-action-btn bg-slate-900">
+            <i class="fa-solid fa-check-double"></i> <span>MARCAR COMO PRONTO</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TICKET #100: MESA 02 (JÁ ASSANDO) -->
+      <div id="ticket-100" data-search="mesa 02 jantinha cupim frango bacon" data-status="ASSANDO" class="wf-card p-3 shadow-md flex flex-col gap-3 bg-slate-50">
+        <div class="bg-slate-950 text-white p-1.5 rounded border border-slate-900 font-mono font-black text-xs flex justify-between items-center">
+          <span>STATUS: [ 2. ASSANDO NA GRELHA 🔥 ]</span>
+          <span class="bg-white text-slate-950 px-2 py-0.5 rounded text-[11px] font-bold">EM PRODUÇÃO</span>
+        </div>
+
+        <div class="flex justify-between items-start pb-2 border-b-2 border-slate-900">
+          <div>
+            <h3 class="font-black text-2xl tracking-tight text-slate-950 leading-none">MESA 02</h3>
+            <span class="text-xs font-mono font-bold text-slate-600">PEDIDO #100 • SALÃO</span>
+          </div>
+          <div class="text-right">
+            <span class="wf-badge-gray text-sm block">09 MIN</span>
+            <span class="text-[10px] font-mono font-bold text-slate-500">ENTRADA: 19:43</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs font-bold text-slate-950">
+          <div class="p-2.5 grill-item-row bg-white border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">2x JANTINHA COMPLETA — CUPIM</span>
+              <span class="wf-badge-gray text-[10px]">2 UNIDADES</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-950 text-white font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: BEM PASSADA
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+
+          <div class="p-2.5 grill-item-row bg-white border-2 border-slate-900 rounded space-y-1">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-black">1x ESPETO FRANGO C/ BACON</span>
+              <span class="wf-badge-gray text-[10px]">ESPETO</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="bg-slate-200 text-slate-950 border border-slate-900 font-mono text-xs px-2 py-1 rounded font-black uppercase">
+                PONTO: AO PONTO
+              </span>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-1">
+          <button onclick="advanceTicketState('100')" class="wf-action-btn bg-slate-900">
+            <i class="fa-solid fa-check-double"></i> <span>MARCAR COMO PRONTO</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 5. WIREFRAME DIRECTIVES PANEL -->
+    <section class="wf-card p-3 bg-white border-2 border-slate-900 text-xs text-slate-900 space-y-1.5">
+      <div class="font-black text-sm uppercase flex items-center justify-between">
+        <span><i class="fa-solid fa-eye"></i> VALIDAÇÃO DE VISIBILIDADE (FASE 1)</span>
+        <span class="wf-badge-gray">LOW-FI</span>
+      </div>
+      <p class="leading-relaxed font-medium text-[11px]">
+        • <strong>Visualização a Distância:</strong> Fontes de títulos com tamanho 24px+ e bordas grossas para leitura a 1-2m de distância perto do fogo.<br>
+        • <strong>Totalizador "GRELHA EM TEMPO REAL":</strong> Soma instantânea de cortes na brasa, acelerando a reposição sem necessidade de abrir cada ficha.<br>
+        • <strong>Ação de 1 Clique:</strong> Botões de largura total na parte inferior do card para avanço de status sem complexidade.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- 6. FIXED BOTTOM TOUCH TOOLBAR -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-slate-900 p-2.5 z-30 shadow-2xl">
+    <div class="max-w-md mx-auto flex items-center justify-between gap-2">
+      <button onclick="simulateNewOrder()" class="wf-action-btn-secondary flex-1 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-plus-circle"></i>
+        <span>SIMULAR NOVO PEDIDO</span>
+      </button>
+      <button onclick="openModalDetails()" class="wf-action-btn-secondary px-4" title="Detalhes do Sistema">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </footer>
+
+  <!-- 7. MODAL DE DETALHES TOUCH -->
+  <div id="backdrop" onclick="closeModalDetails()" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+  <div id="detail-sheet" class="drawer-sheet fixed bottom-0 left-0 right-0 bg-white border-t-4 border-slate-900 rounded-t-xl z-50 p-4 max-w-md mx-auto shadow-2xl space-y-3">
+    <div class="w-16 h-1.5 bg-slate-400 rounded-full mx-auto"></div>
+
+    <div class="flex justify-between items-center pb-2 border-b-2 border-slate-900">
+      <h3 class="font-black text-base uppercase text-slate-950">PAINEL DE CONFIGURAÇÃO DA CHURRASQUEIRA</h3>
+      <button onclick="closeModalDetails()" class="text-slate-950 font-black text-xl p-1">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="space-y-2 text-xs font-bold text-slate-900">
+      <div class="p-2.5 bg-slate-100 border-2 border-slate-900 rounded flex justify-between items-center">
+        <span>SOM DE ALERTA DE NOVO PEDIDO:</span>
+        <button onclick="alert('Wireframe: Alternar som de alerta para ambiente barulhento.')" class="wf-badge-black">ATIVADO</button>
+      </div>
+
+      <div class="p-2.5 bg-slate-100 border-2 border-slate-900 rounded flex justify-between items-center">
+        <span>ORDENAÇÃO DE CARDS:</span>
+        <span class="wf-badge-gray">MAIS ANTIGOSPRIMEIRO</span>
+      </div>
+    </div>
+
+    <button onclick="closeModalDetails()" class="wf-action-btn mt-2">FECHAR PAINEL</button>
+  </div>
+
+  <!-- JAVASCRIPT OPERATIONAL LOGIC -->
+  <script>
+    let activeTab = 'TODOS';
+
+    // Advance Ticket State Workflow
+    function advanceTicketState(ticketId) {
+      const card = document.getElementById('ticket-' + ticketId);
+      if (!card) return;
+
+      const currentStatus = card.getAttribute('data-status');
+
+      if (currentStatus === 'PENDENTES') {
+        // Move from ESPERA -> ASSANDO
+        card.setAttribute('data-status', 'ASSANDO');
+        card.classList.add('bg-slate-50');
+
+        // Update Top Status Bar & Action Button inside card
+        const statusBar = card.querySelector('div:first-child');
+        statusBar.className = "bg-slate-950 text-white p-1.5 rounded border border-slate-900 font-mono font-black text-xs flex justify-between items-center";
+        statusBar.innerHTML = `
+          <span>STATUS: [ 2. ASSANDO NA GRELHA 🔥 ]</span>
+          <span class="bg-white text-slate-950 px-2 py-0.5 rounded text-[11px] font-bold">EM PRODUÇÃO</span>
+        `;
+
+        const actionArea = card.querySelector('div:last-child');
+        actionArea.innerHTML = `
+          <button onclick="advanceTicketState('${ticketId}')" class="wf-action-btn bg-slate-900">
+            <i class="fa-solid fa-check-double"></i> <span>MARCAR COMO PRONTO</span>
+          </button>
+        `;
+
+        updateTabCounts();
+        filterGrillCards();
+      } else if (currentStatus === 'ASSANDO') {
+        // Move from ASSANDO -> PRONTOS
+        card.setAttribute('data-status', 'PRONTOS');
+        card.classList.add('hidden');
+
+        updateTabCounts();
+        filterGrillCards();
+      }
+    }
+
+    // Toggle Item Checklist Strike-through
+    function toggleItemDone(checkbox) {
+      const itemContainer = checkbox.closest('.grill-item-row');
+      if (!itemContainer) return;
+
+      if (checkbox.checked) {
+        itemContainer.classList.add('opacity-40', 'line-through');
+      } else {
+        itemContainer.classList.remove('opacity-40', 'line-through');
+      }
+    }
+
+    // Tab Filtering Logic
+    function setTab(tabName) {
+      activeTab = tabName;
+
+      ['todos', 'pendentes', 'assando', 'prontos'].forEach(t => {
+        const btn = document.getElementById('tab-' + t);
+        if (t.toUpperCase() === tabName) {
+          btn.className = "py-2 rounded bg-slate-950 text-white transition-all";
+        } else {
+          btn.className = "py-2 rounded text-slate-950 hover:bg-slate-200 transition-all";
+        }
+      });
+
+      filterGrillCards();
+    }
+
+    // Apply Filter & Search
+    function filterGrillCards() {
+      const searchQuery = document.getElementById('grill-search').value.toLowerCase();
+      const cards = document.querySelectorAll('#grill-tickets-list > div');
+
+      cards.forEach(card => {
+        const text = card.getAttribute('data-search').toLowerCase();
+        const status = card.getAttribute('data-status');
+
+        const matchesSearch = text.includes(searchQuery);
+        const matchesTab = (activeTab === 'TODOS') || (status === activeTab);
+
+        if (matchesSearch && matchesTab) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    // Update Counts
+    function updateTabCounts() {
+      const pendentes = document.querySelectorAll('[data-status="PENDENTES"]').length;
+      const assando = document.querySelectorAll('[data-status="ASSANDO"]').length;
+      const prontos = document.querySelectorAll('[data-status="PRONTOS"]').length;
+      const total = pendentes + assando + prontos;
+
+      document.getElementById('tab-todos').innerText = `TODOS (${total})`;
+      document.getElementById('tab-pendentes').innerText = `ESPERA (${pendentes})`;
+      document.getElementById('tab-assando').innerText = `ASSANDO (${assando})`;
+      document.getElementById('tab-prontos').innerText = `PRONTOS (${prontos})`;
+
+      document.getElementById('header-total-count').innerText = `${pendentes + assando * 2} ESPETOS`;
+    }
+
+    // Simulate New Incoming Ticket
+    function simulateNewOrder() {
+      const newId = Math.floor(105 + Math.random() * 20);
+      const newCardHTML = `
+        <div id="ticket-${newId}" data-search="mesa 15 jantinha picanha cupim" data-status="PENDENTES" class="wf-card p-3 shadow-md flex flex-col gap-3 animate-pulse border-4">
+          <div class="bg-slate-200 text-slate-950 p-1.5 rounded border border-slate-900 font-mono font-black text-xs flex justify-between items-center">
+            <span>STATUS: [ 1. EM ESPERA ]</span>
+            <span class="bg-slate-950 text-white px-2 py-0.5 rounded text-[11px]">NOVO PEDIDO</span>
+          </div>
+          <div class="flex justify-between items-start pb-2 border-b-2 border-slate-900">
+            <div>
+              <h3 class="font-black text-2xl tracking-tight text-slate-950 leading-none">MESA 15</h3>
+              <span class="text-xs font-mono font-bold text-slate-600">PEDIDO #${newId} • SALÃO</span>
+            </div>
+            <div class="text-right">
+              <span class="wf-badge-black text-sm block">AGORA</span>
+            </div>
+          </div>
+          <div class="space-y-2 text-xs font-bold text-slate-950">
+            <div class="p-2.5 grill-item-row bg-slate-50 border-2 border-slate-900 rounded space-y-1">
+              <div class="flex justify-between items-start">
+                <span class="text-sm font-black">1x JANTINHA COMPLETA — PICANHA</span>
+                <span class="wf-badge-gray text-[10px]">JANTINHA</span>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="bg-slate-950 text-white font-mono text-xs px-2 py-1 rounded font-black uppercase">PONTO: MAL PASSADA</span>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <span class="text-[11px] font-mono uppercase">PRONTO?</span>
+                  <input type="checkbox" onchange="toggleItemDone(this)" class="touch-checkbox">
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="pt-1">
+            <button onclick="advanceTicketState('${newId}')" class="wf-action-btn">
+              <span>AVANÇAR PARA: ASSANDO</span> <i class="fa-solid fa-fire-burner"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('grill-tickets-list').insertAdjacentHTML('afterbegin', newCardHTML);
+
+      // Increment Grill Counter
+      const sumPicanha = document.getElementById('sum-esp-picanha');
+      sumPicanha.innerText = (parseInt(sumPicanha.innerText) + 1) + 'x';
+
+      updateTabCounts();
+      setTab('TODOS');
+    }
+
+    // Modal Handlers
+    function openModalDetails() {
+      document.getElementById('backdrop').classList.remove('hidden');
+      document.getElementById('detail-sheet').classList.add('open');
+    }
+
+    function closeModalDetails() {
+      document.getElementById('backdrop').classList.add('hidden');
+      document.getElementById('detail-sheet').classList.remove('open');
+    }
+  </script>
+</body>
+</html>

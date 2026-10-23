@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarrão Espetaria - Wireframe Desktop (Fase 1)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; color: #0f172a; }
+    .wireframe-border { border: 2px solid #64748b; }
+    .wireframe-card { background-color: #ffffff; border: 2px solid #94a3b8; box-shadow: none; }
+    .wireframe-btn { background-color: #e2e8f0; border: 2px solid #475569; font-weight: 700; color: #0f172a; }
+    .wireframe-btn:hover { background-color: #cbd5e1; }
+    .wireframe-btn-dark { background-color: #334155; border: 2px solid #0f172a; color: #ffffff; font-weight: 700; }
+    .wireframe-btn-dark:hover { background-color: #1e293b; }
+    .wireframe-badge { background-color: #e2e8f0; border: 1px solid #64748b; color: #0f172a; font-weight: 700; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-100">
+
+  <!-- BARRA SUPERIOR DE ATALHOS -->
+  <header class="bg-slate-800 text-white px-6 py-3 flex items-center justify-between border-b-4 border-slate-900 shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="bg-slate-200 text-slate-900 font-extrabold px-3 py-1 rounded border-2 border-slate-400 text-lg">
+        [LOGO] JARRÃO ESPETARIA
+      </div>
+      <span class="text-xs bg-slate-700 text-slate-200 px-2 py-1 rounded border border-slate-500 font-mono">
+        FASE 1: WIREFRAME DESKTOP
+      </span>
+    </div>
+
+    <!-- ATALHOS RÁPIDOS DE TECLADO -->43ew-901'
+    <div class="flex items-center gap-3 font-mono text-xs">
+      <button onclick="switchTab('kanban')" class="wireframe-btn px-3 py-1.5 rounded">F2: Novo Pedido</button>
+      <button onclick="switchTab('mesas')" class="wireframe-btn px-3 py-1.5 rounded">F4: Mesas</button>
+      <button onclick="switchTab('caixa')" class="wireframe-btn px-3 py-1.5 rounded">F8: Caixa</button>
+    </div>
+
+    <div class="text-xs font-mono text-slate-300">
+      Operador: <strong class="text-white font-bold">[ Henrique (Gerente) ]</strong>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- MENU LATERAL (SIDEBAR DESKTOP) -->
+    <aside class="w-64 bg-slate-200 border-r-2 border-slate-400 p-4 flex flex-col justify-between shrink-0">
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-2">Navegação Geral</div>
+        
+        <button onclick="switchTab('kanban')" id="btn-kanban" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-700 bg-slate-300 text-slate-900 flex items-center justify-between">
+          <span>1. Painel / Kanban</span>
+          <span class="text-xs bg-slate-400 px-1.5 py-0.5 rounded">F1</span>
+        </button>
+
+        <button onclick="switchTab('churrasco')" id="btn-churrasco" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>2. Churrasqueira</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F3</span>
+        </button>
+
+        <button onclick="switchTab('cozinha')" id="btn-cozinha" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>3. Cozinha</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F5</span>
+        </button>
+
+        <button onclick="switchTab('mesas')" id="btn-mesas" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>4. Mesas & Pedidos</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F4</span>
+        </button>
+
+        <button onclick="switchTab('caixa')" id="btn-caixa" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>5. Caixa & Pagamentos</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F8</span>
+        </button>
+
+        <button onclick="switchTab('gerencia')" id="btn-gerencia" class="w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between">
+          <span>6. Estoque & Relatórios</span>
+          <span class="text-xs bg-slate-200 px-1.5 py-0.5 rounded">F9</span>
+        </button>
+      </div>
+
+      <div class="wireframe-card p-3 text-xs space-y-1">
+        <div class="font-bold border-b border-slate-300 pb-1">Status do Sistema</div>
+        <div>Mesas Ocupadas: <strong>12 / 20</strong></div>
+        <div>Fila Produção: <strong>7 Pedidos</strong></div>
+        <div class="text-emerald-700 font-bold">● Conectado ao Servidor</div>
+      </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL (MUDANÇA DE TELAS) -->
+    <main class="flex-1 overflow-y-auto p-6 bg-slate-100" id="main-container">
+
+      <!-- MÓDULO 1 & 2: PAINEL / KANBAN -->
+      <section id="sec-kanban" class="space-y-6">
+        <!-- MÉTRICAS DO TOPO -->
+        <div class="grid grid-cols-4 gap-4">
+          <div class="wireframe-card p-4 rounded-lg">
+            <div class="text-xs text-slate-500 font-bold uppercase">Mesas Ocupadas</div>
+            <div class="text-2xl font-black mt-1">12 / 20</div>
+            <div class="text-xs text-slate-600">60% de ocupação do salão</div>
+          </div>
+          <div class="wireframe-card p-4 rounded-lg">
+            <div class="text-xs text-slate-500 font-bold uppercase">Pedidos em Aberto</div>
+            <div class="text-2xl font-black mt-1">8 Pedidos</div>
+            <div class="text-xs text-slate-600">Churrasco: 4 | Cozinha: 4</div>
+          </div>
+          <div class="wireframe-card p-4 rounded-lg">
+            <div class="text-xs text-slate-500 font-bold uppercase">Prontos p/ Entrega</div>
+            <div class="text-2xl font-black mt-1">3 Pedidos</div>
+            <div class="text-xs text-slate-600">Mesas: 02, 05, 12</div>
+          </div>
+          <div class="wireframe-card p-4 rounded-lg">
+            <div class="text-xs text-slate-500 font-bold uppercase">Tempo Médio Espera</div>
+            <div class="text-2xl font-black mt-1">14 min</div>
+            <div class="text-xs text-slate-600">Dentro da meta (< 20 min)</div>
+          </div>
+        </div>
+
+        <!-- QUADRO KANBAN LADO A LADO -->
+        <div class="grid grid-cols-3 gap-6 items-start">
+          
+          <!-- COLUNA 1: NOVOS -->
+          <div class="bg-slate-200 border-2 border-slate-400 rounded-lg p-4 space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-400 pb-2">
+              <h3 class="font-extrabold text-slate-800 text-lg">1. NOVOS PEDIDOS</h3>
+              <span class="wireframe-badge px-2 py-0.5 rounded text-sm">3</span>
+            </div>
+
+            <!-- CARD PEDIDO -->
+            <div class="wireframe-card p-4 rounded-lg space-y-3">
+              <div class="flex justify-between items-start border-b pb-2">
+                <div>
+                  <span class="font-black text-lg">#104 - MESA 05</span>
+                  <div class="text-xs text-slate-500 font-mono">Garçom: Carlos • Há 3 min</div>
+                </div>
+                <span class="wireframe-badge px-2 py-0.5 rounded text-xs">SALÃO</span>
+              </div>
+              <div class="text-sm space-y-1 font-mono">
+                <div class="font-bold">• 2x Jantinha Completa (Cupim)</div>
+                <div class="text-xs pl-3 text-slate-600">[Ponto: Ao Ponto] (Tropeiro, Mandioca, Vinagrete, Farofa)</div>
+                <div class="font-bold">• 1x Cerveja 600ml</div>
+              </div>
+              <div class="bg-slate-100 p-2 rounded text-xs font-mono border border-slate-300">
+                Obs: Capricho no vinagrete
+              </div>
+              <button class="wireframe-btn-dark w-full py-2 text-sm rounded">INICIAR PREPARO &gt;</button>
+            </div>
+
+            <div class="wireframe-card p-4 rounded-lg space-y-3">
+              <div class="flex justify-between items-start border-b pb-2">
+                <div>
+                  <span class="font-black text-lg">#105 - DELIVERY #12</span>
+                  <div class="text-xs text-slate-500 font-mono">Cliente: João S. • Há 1 min</div>
+                </div>
+                <span class="wireframe-badge px-2 py-0.5 rounded text-xs">DELIVERY</span>
+              </div>
+              <div class="text-sm space-y-1 font-mono">
+                <div class="font-bold">• 1x Jantinha Completa (Picanha)</div>
+                <div class="text-xs pl-3 text-slate-600">[Ponto: Mal Passada]</div>
+              </div>
+              <button class="wireframe-btn-dark w-full py-2 text-sm rounded">INICIAR PREPARO &gt;</button>
+            </div>
+          </div>
+
+          <!-- COLUNA 2: EM PREPARAÇÃO -->
+          <div class="bg-slate-200 border-2 border-slate-400 rounded-lg p-4 space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-400 pb-2">
+              <h3 class="font-extrabold text-slate-800 text-lg">2. EM PREPARAÇÃO</h3>
+              <span class="wireframe-badge px-2 py-0.5 rounded text-sm">2</span>
+            </div>
+
+            <div class="wireframe-card p-4 rounded-lg space-y-3">
+              <div class="flex justify-between items-start border-b pb-2">
+                <div>
+                  <span class="font-black text-lg">#102 - MESA 02</span>
+                  <div class="text-xs text-slate-500 font-mono">Garçom: Ana • Há 12 min</div>
+                </div>
+                <span class="wireframe-badge px-2 py-0.5 rounded text-xs">CHURRASCO</span>
+              </div>
+              <div class="text-sm space-y-1 font-mono">
+                <div class="font-bold">• 1x Jantinha Completa (Cupim)</div>
+                <div class="font-bold">• 1x Espeto Frango c/ Bacon</div>
+              </div>
+              <button class="wireframe-btn-dark w-full py-2 text-sm rounded">MARCAR COMO PRONTO &gt;</button>
+            </div>
+          </div>
+
+          <!-- COLUNA 3: PRONTOS -->
+          <div class="bg-slate-200 border-2 border-slate-400 rounded-lg p-4 space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-400 pb-2">
+              <h3 class="font-extrabold text-slate-800 text-lg">3. PRONTOS P/ ENTREGA</h3>
+              <span class="wireframe-badge px-2 py-0.5 rounded text-sm">2</span>
+            </div>
+
+            <div class="wireframe-card p-4 rounded-lg space-y-3">
+              <div class="flex justify-between items-start border-b pb-2">
+                <div>
+                  <span class="font-black text-lg">#100 - MESA 08</span>
+                  <div class="text-xs text-slate-500 font-mono">Garçom: Carlos • Há 22 min</div>
+                </div>
+                <span class="wireframe-badge px-2 py-0.5 rounded text-xs">PRONTO</span>
+              </div>
+              <div class="text-sm space-y-1 font-mono">
+                <div class="font-bold">• 2x Cerveja 600ml</div>
+                <div class="font-bold">• 1x Porção Batata Frita</div>
+              </div>
+              <button class="wireframe-btn w-full py-2 text-sm rounded">FINALIZAR / ENTREGUE ✔</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- MÓDULO 3: CHURRASQUEIRA -->
+      <section id="sec-churrasco" class="space-y-6 hidden">
+        <div class="wireframe-card p-4 rounded-lg bg-slate-800 text-white border-4 border-slate-900">
+          <div class="font-extrabold text-lg mb-2">🥩 RESUMO DA GRELHA EM TEMPO REAL (TOTAL DE ESPETOS PENDENTES):</div>
+          <div class="flex flex-wrap gap-3 font-mono">
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">6x JANTINHA CUPIM</span>
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">4x ESPETO PICANHA</span>
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">3x FRANGO C/ BACON</span>
+            <span class="bg-slate-700 px-3 py-1.5 rounded border border-slate-500 font-bold text-sm">2x QUEIJO COALHO</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="wireframe-card p-5 rounded-lg space-y-4 border-2 border-slate-800">
+            <div class="flex justify-between items-center border-b-2 border-slate-400 pb-2">
+              <span class="font-black text-2xl">MESA 05</span>
+              <span class="wireframe-badge px-3 py-1 rounded font-mono">Há 6 min</span>
+            </div>
+            <div class="text-sm font-bold font-mono bg-slate-200 p-2 rounded">PONTO DA CARNE: [ AO PONTO ]</div>
+            <div class="space-y-2 font-mono text-base">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" class="w-5 h-5">
+                <span>2x ESPETO CUPIM (JANTINHA)</span>
+              </label>
+              <div class="text-xs text-slate-600 pl-7">(Acompanha: Tropeiro, Mandioca, Vinagrete, Farofa)</div>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" class="w-5 h-5">
+                <span>1x ESPETO PICANHA</span>
+              </label>
+            </div>
+            <button class="wireframe-btn-dark w-full py-3 text-base rounded">MARCAR COMO ASSANDO 🔥</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 4 & 5: MESAS E LANÇAMENTO -->
+      <section id="sec-mesas" class="space-y-6 hidden">
+        <div class="flex justify-between items-center bg-slate-200 p-4 rounded-lg border-2 border-slate-400">
+          <div class="flex gap-2">
+            <button class="wireframe-btn-dark px-4 py-2 rounded text-sm">Todas (20)</button>
+            <button class="wireframe-btn px-4 py-2 rounded text-sm">Livres (8)</button>
+            <button class="wireframe-btn px-4 py-2 rounded text-sm">Ocupadas (10)</button>
+            <button class="wireframe-btn px-4 py-2 rounded text-sm">Pagar Conta (2)</button>
+          </div>
+          <button class="wireframe-btn-dark px-5 py-2 rounded text-sm">+ ABRIR NOVA MESA</button>
+        </div>
+
+        <div class="grid grid-cols-5 gap-4">
+          <div class="wireframe-card p-4 rounded-lg space-y-2 text-center border-2 border-slate-400">
+            <div class="font-black text-xl">MESA 01</div>
+            <div class="text-xs font-bold text-emerald-700 bg-emerald-100 py-1 rounded">LIVRE</div>
+            <button class="wireframe-btn w-full py-1.5 text-xs rounded mt-2">ABRIR</button>
+          </div>
+
+          <div class="wireframe-card p-4 rounded-lg space-y-2 text-center border-2 border-slate-800 bg-slate-50">
+            <div class="font-black text-xl">MESA 02</div>
+            <div class="text-xs font-bold text-slate-800 bg-slate-200 py-1 rounded">OCUPADA (45 min)</div>
+            <div class="text-sm font-bold">R$ 88,00</div>
+            <button class="wireframe-btn-dark w-full py-1.5 text-xs rounded mt-2">+ ADD PEDIDO</button>
+          </div>
+
+          <div class="wireframe-card p-4 rounded-lg space-y-2 text-center border-2 border-amber-600 bg-amber-50">
+            <div class="font-black text-xl">MESA 03</div>
+            <div class="text-xs font-bold text-amber-800 bg-amber-200 py-1 rounded">PEDINDO CONTA</div>
+            <div class="text-sm font-bold">R$ 142,00</div>
+            <button onclick="switchTab('caixa')" class="wireframe-btn w-full py-1.5 text-xs rounded mt-2 bg-amber-200">IR P/ CAIXA</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 6: CAIXA E PAGAMENTOS -->
+      <section id="sec-caixa" class="space-y-6 hidden">
+        <div class="grid grid-cols-12 gap-6">
+          <!-- LISTA DE MESAS P/ FECHAR -->
+          <div class="col-span-4 space-y-3">
+            <div class="font-extrabold text-slate-800 text-base">MESAS AGUARDANDO PAGAMENTO</div>
+            <div class="wireframe-card p-3 rounded-lg border-2 border-slate-800 bg-slate-200 cursor-pointer">
+              <div class="flex justify-between font-bold">
+                <span>MESA 03</span>
+                <span>R$ 142,00</span>
+              </div>
+              <div class="text-xs text-slate-600">Permanência: 1h 10min • 3 Pessoas</div>
+            </div>
+            <div class="wireframe-card p-3 rounded-lg border-2 border-slate-400 cursor-pointer">
+              <div class="flex justify-between font-bold">
+                <span>MESA 07</span>
+                <span>R$ 210,50</span>
+              </div>
+              <div class="text-xs text-slate-600">Permanência: 2h 05min • 5 Pessoas</div>
+            </div>
+          </div>
+
+          <!-- DETALHAMENTO E FECHAMENTO -->
+          <div class="col-span-8 wireframe-card p-6 rounded-lg space-y-6 border-2 border-slate-800">
+            <div class="flex justify-between items-center border-b-2 border-slate-400 pb-3">
+              <div>
+                <h2 class="font-black text-2xl">FECHAMENTO: MESA 03</h2>
+                <div class="text-xs text-slate-500 font-mono">Atendente: Carlos • Abertura: 19:15</div>
+              </div>
+              <span class="wireframe-badge px-3 py-1 rounded font-mono text-sm">3 PESSOAS</span>
+            </div>
+
+            <!-- EXTRATO DA CONTA -->
+            <div class="space-y-2 font-mono text-sm border-b pb-4">
+              <div class="flex justify-between"><span>2x Jantinha Completa (Cupim)</span><span>R$ 64,00</span></div>
+              <div class="flex justify-between"><span>1x Porção Batata Frita</span><span>R$ 28,00</span></div>
+              <div class="flex justify-between"><span>4x Cerveja 600ml</span><span>R$ 48,00</span></div>
+              <div class="flex justify-between font-bold pt-2 border-t"><span>SUBTOTAL</span><span>R$ 140,00</span></div>
+              <div class="flex justify-between text-xs text-slate-600"><span>Taxa de Serviço (10% - Opcional)</span><span>R$ 14,00</span></div>
+              <div class="flex justify-between font-black text-lg pt-2 text-slate-900 border-t-2 border-slate-800">
+                <span>TOTAL A PAGAR</span><span>R$ 154,00</span>
+              </div>
+            </div>
+
+            <!-- CALCULADORA DE DIVISÃO -->
+            <div class="space-y-2">
+              <div class="text-xs font-bold text-slate-600 uppercase">Divisão Rápida de Conta:</div>
+              <div class="grid grid-cols-4 gap-2">
+                <button class="wireframe-btn py-2 text-xs rounded">÷1 Pessoa<br><strong>R$ 154,00</strong></button>
+                <button class="wireframe-btn py-2 text-xs rounded">÷2 Pessoas<br><strong>R$ 77,00</strong></button>
+                <button class="wireframe-btn py-2 text-xs rounded">÷3 Pessoas<br><strong>R$ 51,33</strong></button>
+                <button class="wireframe-btn py-2 text-xs rounded">÷4 Pessoas<br><strong>R$ 38,50</strong></button>
+              </div>
+            </div>
+
+            <!-- BOTÃO DE AÇÃO -->
+            <button class="wireframe-btn-dark w-full py-4 text-lg rounded">REGISTRAR PAGAMENTO E FINALIZAR (F10)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULOS ADMINISTRATIVEIS -->
+      <section id="sec-gerencia" class="space-y-6 hidden">
+        <div class="grid grid-cols-2 gap-6">
+          <div class="wireframe-card p-5 rounded-lg space-y-4">
+            <h3 class="font-extrabold text-lg border-b pb-2">PAUSA RÁPIDA DE VENDAS (ESTOQUE)</h3>
+            <div class="space-y-2 font-mono text-sm">
+              <div class="flex justify-between items-center p-2 bg-slate-100 rounded">
+                <span>Espeto Cupim (Estoque: 18 un)</span>
+                <button class="wireframe-btn px-3 py-1 text-xs rounded">DISPONÍVEL</button>
+              </div>
+              <div class="flex justify-between items-center p-2 bg-slate-200 rounded">
+                <span>Espeto Picanha (Estoque: 0 un)</span>
+                <button class="wireframe-btn-dark px-3 py-1 text-xs rounded bg-red-800">PAUSADO / ESGOTADO</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wireframe-card p-5 rounded-lg space-y-4">
+            <h3 class="font-extrabold text-lg border-b pb-2">RESUMO DE VENDAS DO DIA</h3>
+            <div class="space-y-2 font-mono text-sm">
+              <div class="flex justify-between"><span>Faturamento Total:</span><strong>R$ 2.450,00</strong></div>
+              <div class="flex justify-between"><span>Vendas em Pix:</span><strong>R$ 1.200,00</strong></div>
+              <div class="flex justify-between"><span>Vendas em Cartão:</span><strong>R$ 950,00</strong></div>
+              <div class="flex justify-between"><span>Vendas em Dinheiro:</span><strong>R$ 300,00</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      // Ocultar todas as seções
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      
+      // Resetar estilo dos botões do menu
+      const btns = ['kanban', 'churrasco', 'cozinha', 'mesas', 'caixa', 'gerencia'];
+      btns.forEach(id => {
+        const btn = document.getElementById('btn-' + id);
+        if(btn) {
+          btn.className = "w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-400 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-between";
+        }
+      });
+
+      // Exibir seção escolhida
+      const selectedSec = document.getElementById('sec-' + tabId);
+      if(selectedSec) selectedSec.classList.remove('hidden');
+
+      // Destacar botão ativo
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if(activeBtn) {
+        activeBtn.className = "w-full text-left font-bold px-3 py-2.5 rounded border-2 border-slate-700 bg-slate-300 text-slate-900 flex items-center justify-between";
+      }
+    }
+  </script>
+</body>
+</html>
