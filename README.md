@@ -8,6 +8,7 @@ Sistema web para integrar a operação do Jarrão Espetaria (Barretos – SP): p
 - [Contexto do projeto](docs/CONTEXTO_DO_PROJETO.md) — como o restaurante funciona e o que queremos.
 - [Decisões e pendências](docs/DECISOES.md) — o que já foi decidido e o que falta.
 - [CLAUDE.md](CLAUDE.md) — instruções para o Claude Code.
+- [`direcao_visual/`](direcao_visual/) — wireframes (HTML estático) usados como referência de estrutura das telas; `wireframe_correção.html` (ficha única por mesa) está na raiz do projeto.
 
 ## Identidade visual
 Logo e ícones em `public/`, cores e tipografia em `app/globals.css` e `app/layout.js` (detalhes em [docs/DECISOES.md](docs/DECISOES.md)).
@@ -17,7 +18,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 ## Como rodar
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql` `supabase/migrations/004_cardapio_real.sql` e `supabase/migrations/005_mesas_livres.sql`.
+2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql` e `supabase/migrations/005_mesas_livres.sql`.
 3. Copie `.env.example` para `.env.local` e preencha a URL e a chave `anon` (Project Settings → API).
 4. Instale e rode:
    ```
@@ -31,9 +32,9 @@ Testes das regras: `npm test`.
 
 ## Telas
 - `/garcom` — digita a mesa e, se quiser, a pessoa (`12` ou `12/João`) e escolhe os itens.
-- `/cozinha`, `/churrasqueira` — itens do setor, em tempo real (Em preparo / Pronto).
-- `/mesas` — contas abertas, consumo, entrega, cancelamento e histórico.
-- `/caixa` — contas abertas, pagamentos (dinheiro, débito, crédito) e fechamento da conta.
+- `/cozinha`, `/churrasqueira` — quadro Kanban em tempo real (Novos, Em preparo, Prontos), uma ficha por mesa com os itens do setor.
+- `/mesas` — contas abertas, consumo por bloco (bebidas, espetos, cozinha), entrega, cancelamento e histórico.
+- `/caixa` — contas abertas, extrato, pagamentos (dinheiro, débito, crédito), saldo e fechamento da conta.
 
 ## Rumo ao uso real
 Veja [docs/PLANO_PROFISSIONAL.md](docs/PLANO_PROFISSIONAL.md).

@@ -12,11 +12,13 @@ Prioridade: **P1** = obrigatório antes do uso real · **P2** = importante, pode
 
 Pronto (com dados fictícios):
 - Garçom registra pedido por mesa, com pessoa opcional.
-- Itens vão ao setor cadastrado (cozinha ou churrasqueira), em tempo real.
-- Estado por item: novo → em preparo → pronto → entregue (ou cancelado).
-- Mesas e consumo, histórico da conta.
+- Itens vão ao setor cadastrado (cozinha, churrasqueira ou garçom, no caso das bebidas), em tempo real.
+- Estado por item: novo → em preparo → pronto → entregue (ou cancelado). Bebidas vão de novo direto para entregue.
+- Quadro Kanban nas telas da cozinha e da churrasqueira, com uma ficha por mesa.
+- Mesas e consumo por bloco, histórico da conta.
 - Caixa: pagamentos parciais (dinheiro, débito, crédito) e fechamento da conta.
-- Testes das regras em JavaScript (17 testes).
+- Cardápio real cadastrado (133 produtos com preço informado).
+- Testes das regras em JavaScript (50 testes).
 
 Limites conhecidos:
 - Sem login: qualquer pessoa com o endereço consegue usar e gravar.
@@ -31,7 +33,7 @@ Limites conhecidos:
 
 | # | Item | Prioridade | Quem |
 |---|---|---|---|
-| 2.1 | Corrigir os problemas que você observou nas telas (me diga quais) | P1 | Os dois |
+| 2.1 | Corrigir os problemas observados nas telas (anotar cada um: tela, o que fez, o que esperava, o que aconteceu) | P1 | Os dois |
 | 2.2 | Tela de cadastro e edição de produtos (nome, preço, setor, ativo) | P1 | Eu |
 | 2.3 | Histórico da conta também visível no caixa | P1 | Eu |
 | 2.4 | Separação de contas por pessoa (total por pessoa, pagar separado) | P2 | Os dois (regras abaixo) |

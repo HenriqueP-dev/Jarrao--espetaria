@@ -1,6 +1,6 @@
 # Decisões, preferências e pendências
 
-Última atualização: 2026-10-22.
+Última atualização: 2026-10-24.
 
 Referências: [CONTEXTO_DO_PROJETO.md](CONTEXTO_DO_PROJETO.md) (como o restaurante funciona) · [CARDAPIO.md](CARDAPIO.md) (produtos e preços informados) · [PLANO_PROFISSIONAL.md](PLANO_PROFISSIONAL.md) (o que falta para o uso real) · [PERGUNTAS_PENDENTES.md](PERGUNTAS_PENDENTES.md) (perguntas originais).
 
@@ -23,12 +23,14 @@ Referências: [CONTEXTO_DO_PROJETO.md](CONTEXTO_DO_PROJETO.md) (como o restauran
 - Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel na publicação futura.
 - Estado controlado por item.
 - Sem login no protótipo, só com dados fictícios. **Login é obrigatório antes de qualquer uso real.** Segurança fica para depois do protótipo, por decisão do desenvolvedor.
-- Migrations SQL numeradas em `supabase/migrations/` (001 a 003 aplicadas).
+- Migrations SQL numeradas em `supabase/migrations/` (001 a 004 aplicadas e validadas à mão; a 005, de mesa livre, foi escrita em 23/10 e aplicada em 25/10, conferida por consulta de leitura).
 - Não publicar, contratar serviços, gastar dinheiro nem fazer commit sem autorização do desenvolvedor.
 
 ## 2. Estado do protótipo
 
-Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 a 003: pedido do garçom → setores em tempo real → preparo → entrega → cancelamento → pagamento parcial → fechamento da conta. Existem 17 testes automáticos das regras em JavaScript. As funções do banco ainda não têm testes automáticos. Depois, o desenvolvedor também validou à mão a migration 004 (cardápio real, setor garçom, observação e escolha do espeto na jantinha) e confirmou que funcionou.
+Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 a 003: pedido do garçom → setores em tempo real → preparo → entrega → cancelamento → pagamento parcial → fechamento da conta. Depois, o desenvolvedor também validou à mão a migration 004 (cardápio real, setor garçom, observação e escolha do espeto na jantinha) e confirmou que funcionou.
+
+Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesas por blocos, Caixa em duas colunas) e a mesa passou a ser livre (1 a 999). Hoje existem **50 testes automáticos** das regras em JavaScript (5 arquivos), todos passando, e o build funciona. As funções do banco ainda não têm testes automáticos. Para as telas refeitas em 23/10 não há registro de validação à mão. Uma consulta de leitura em 24/10 mostrou que a migration 005 ainda não estava no banco (a função `criar_pedido` antiga respondia "Mesa N não existe"). O desenvolvedor aplicou a 005 em 25/10 e uma nova consulta confirmou a função nova: mesa 0 e mesa 1000 são recusadas com "Mesa inválida", e nenhum pedido foi gravado no teste. Em 25/10 foi feito um teste das funções do banco **numa transação desfeita** (nada ficou gravado), chamando como o papel público: pedido na mesa 9 aceito (mesa cadastrada na hora, conta aberta, 2 itens, bebida no setor garçom, jantinha na churrasqueira com o espeto na observação, 3 eventos no histórico); mesa 30 aceita; bebida foi de Novo para Entregue; jantinha de Novo para Entregue recusada; jantinha sem espeto recusada. Ainda falta validar a tela `/garcom` no navegador com uma mesa fora das 22.
 
 ## Identidade visual
 
@@ -45,7 +47,7 @@ Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 
 - [Código] Aplicado em `/cozinha` e `/churrasqueira` (`TelaSetor`), `/garcom` (barra fixa com total e botão enviar; selo de quantidade em cada produto), `/mesas` (indicadores e cartões com total e "prontos") e `/caixa` (lista de contas + extrato com total grande e "falta receber").
 - [Código] Ticket agrupado por mesa, do pedido mais antigo ao mais novo. **Hipótese:** o tempo de espera muda de cor aos 10 min (amarelo) e 20 min (vermelho). Aqui o vermelho é alerta de espera longa, não o estado "Novo"; as faixas são palpite e precisam ser validadas com a equipe.
 - [Preferência/Código] **Ficha única por mesa** (`direcao_visual` + `wireframe_correção.html`): cada mesa é um só cartão com todos os itens ativos dela, mesmo quando a aba ou a busca casa com só um item. Cada item tem uma caixa para marcar como Pronto, e um botão age na mesa inteira ("Iniciar preparo da mesa", "Marcar mesa como pronta"). O estado continua **por item** no banco; o botão só aplica a mudança a todos os itens que ainda podem mudar.
-- [Preferência/Código] **Mesa e pessoa em um campo só** (decisão do desenvolvedor, 2026-10-23): o garçom digita `12` ou `12/João` (mesa, barra, nome). Acabaram os botões numerados 1–23, porque às vezes o restaurante empresta mesas do vizinho e o número passa de 23. O número da mesa é livre, de 1 a 999 (inclusive o 9). A tela Mesas lista só as mesas com conta aberta. Cada pedido tem uma única pessoa; para outra pessoa da mesma mesa, lança-se outro pedido (`12/Maria`). Exige a **migration 005** no Supabase (a função `criar_pedido` antiga só aceitava 1–8 e 10–23). [Pendente] o que fazer se o nome vier escrito de formas diferentes (`joao`, `João`): hoje são tratados como pessoas diferentes.
+- [Preferência/Código] **Mesa e pessoa em um campo só** (decisão do desenvolvedor, 2026-10-23): o garçom digita `12` ou `12/João` (mesa, barra, nome). Acabaram os botões numerados 1–23, porque às vezes o restaurante empresta mesas do vizinho e o número passa de 23. O número da mesa é livre, de 1 a 999 (inclusive o 9). A tela Mesas lista só as mesas com conta aberta. Cada pedido tem uma única pessoa; para outra pessoa da mesma mesa, lança-se outro pedido (`12/Maria`). Exige a **migration 005** no Supabase (a função `criar_pedido` antiga só aceitava 1–8 e 10–23); aplicada em 25/10. [Pendente] o que fazer se o nome vier escrito de formas diferentes (`joao`, `João`): hoje são tratados como pessoas diferentes.
 - [Preferência/Código] **Entrega na tela Mesas com um botão só**: "Entregue (N itens)" entrega de uma vez tudo o que a churrasqueira e a cozinha já marcaram Pronto, mais as bebidas do setor garçom (que vão de Novo direto para Entregue). Itens ainda em preparo não entram. O estado continua por item no banco. "Cancelar" segue por item, separado, para não ser tocado por engano.
 - [Pendente] Nome do garçom no cabeçalho da ficha: não há login, então o sistema não sabe quem lançou (depende de F5). Observação geral da mesa: hoje a observação é por item; não existe campo de observação da mesa. "Ponto da carne" continua dentro da observação do item, sem campo próprio.
 - [Preferência/Código] **Mesas separada em Bebidas, Espetos e Cozinha** (pedido do desenvolvedor, 2026-10-23): os itens da conta aparecem em três blocos, pelo setor do cadastro (garçom = Bebidas, churrasqueira = Espetos, cozinha = Cozinha). Há uma barra com **três botões de entregar, um por bloco, lado a lado**; cada um entrega só o que já está pronto naquele bloco (as bebidas não passam por preparo). Substituiu o botão único. O bloco "Espetos" também inclui jantinhas, doces e adicionais da churrasqueira. Item de setor desconhecido vai para "Outros".
@@ -68,7 +70,7 @@ Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 
 - [Código] Não é possível cancelar item de conta que já tem pagamento.
 - [Código] Pix ainda não está nas formas de pagamento.
 - [Código] O pagamento é registro manual, não confirmação da maquininha.
-- [Código] (migration 004, ainda não rodada) **Setor "garçom"** para bebidas prontas: o garçom anota e busca, então o item não aparece em tela de preparo e vai de Novo direto para Entregue (marcado em `/mesas`). Decisão informada pelo desenvolvedor; confirmar com o dono.
+- [Código] (migration 004, aplicada e validada) **Setor "garçom"** para bebidas prontas: o garçom anota e busca, então o item não aparece em tela de preparo e vai de Novo direto para Entregue (marcado em `/mesas`). Decisão informada pelo desenvolvedor; confirmar com o dono.
 - [Código] **Meia/inteira** viram dois produtos; **cada sabor** de caipirinha, caipiroska e saqueirinha é um produto; **adicionais** são produtos com preço próprio.
 - [Código] **Observação opcional** em cada item (campo `detalhe`), mostrada nos setores, em Mesas e no Caixa. Hipótese de uso: dizer em qual espeto vai o adicional.
 - [Código] **Jantinha exige escolher o espeto da casa**; a escolha vai na observação e o pedido segue só para a churrasqueira.
@@ -120,7 +122,7 @@ Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 
 ### D. Produtos e cardápio
 - Cardápio e preços informados pelo desenvolvedor estão em [CARDAPIO.md](CARDAPIO.md). Itens sem preço **não** são cadastrados (nem com valor zero).
 - [Fato] Setores: espetos e jantinhas → churrasqueira; batatas, porções, quibes, saladas e caipirinhas → cozinha. Bebidas prontas (D4): segundo o desenvolvedor, os próprios garçons anotam e buscam; no sistema, setor "garçom". [Pendente] confirmar com o dono.
-- [Fato] O cardápio tem tamanhos (meia/inteira), sabores e adicionais. O modelo de produtos atual não cobre isso.
+- [Fato] O cardápio tem tamanhos (meia/inteira), sabores e adicionais. [Código] Resolvido na migration 004: cada tamanho e cada sabor é um produto, e adicionais são produtos com preço próprio.
 - [Pendente] Quem pode alterar preços (D2). [Proposta] só o dono ou administrador. O preço de um pedido já lançado permanece registrado.
 
 ### E. Estoque
@@ -171,8 +173,8 @@ Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 
 | Tema | Protótipo hoje | O que foi pedido |
 |---|---|---|
 | Cancelamento | Qualquer pessoa em `/mesas` cancela | Só a dona (exige login e permissões) |
-| Cardápio | Resolvido na migration 004 (a rodar): 133 produtos reais, sem os itens sem preço | Cardápio real (apenas itens com preço informado) |
-| Produtos | Resolvido na migration 004 (a rodar): categorias, observação, escolha do espeto e setor garçom | Meia/inteira, sabores, adicionais e escolha do espeto na jantinha |
+| Cardápio | Resolvido na migration 004 (aplicada): 133 produtos reais ativos, sem os itens sem preço | Cardápio real (apenas itens com preço informado) |
+| Produtos | Resolvido na migration 004 (aplicada): categorias, observação, escolha do espeto e setor garçom | Meia/inteira, sabores, adicionais e escolha do espeto na jantinha |
 | Aviso no setor | Item cancelado some da lista | Cancelamento visível ao setor |
 | Telas dos setores | Resolvido: Kanban com as três colunas lado a lado (Novos, Em preparo, Prontos); no celular as colunas rolam para o lado | Quadro em colunas (Novos, Em preparo, Prontos) |
 | Troca de mesa, troca de item, mover item entre pessoas | Não existem | Com confirmação e histórico |
