@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
-// Guarda quem está logado, qual é o perfil e se a trava do login está ligada.
+// Guarda quem está logado e qual é o perfil. O login é sempre exigido (migration 013).
 // Quem realmente protege os dados é o banco; aqui a tela só acompanha.
 const Contexto = createContext(null);
 
@@ -15,7 +15,7 @@ export function useSessao() {
 
 const INICIAL = {
   carregando: true,
-  loginObrigatorio: false,
+  loginObrigatorio: true,
   usuario: null,
   perfil: null, // só vale se o perfil estiver ativo
   nome: null,
@@ -25,10 +25,7 @@ export default function SessaoProvider({ children }) {
   const [estado, setEstado] = useState(INICIAL);
 
   const recarregar = useCallback(async () => {
-    const [config, sessao] = await Promise.all([
-      supabase.from('configuracao').select('exigir_login').maybeSingle(),
-      supabase.auth.getSession(),
-    ]);
+    const sessao = await supabase.auth.getSession();
     const usuario = sessao.data?.session?.user ?? null;
     let linha = null;
     if (usuario) {
@@ -41,7 +38,7 @@ export default function SessaoProvider({ children }) {
     }
     setEstado({
       carregando: false,
-      loginObrigatorio: Boolean(config.data?.exigir_login),
+      loginObrigatorio: true, // sempre, desde a migration 013 (não existe mais modo aberto)
       usuario,
       perfil: linha?.ativo ? linha.perfil : null,
       nome: linha?.nome ?? null,
@@ -56,7 +53,7 @@ export default function SessaoProvider({ children }) {
         setTimeout(recarregar, 0);
       }
     });
-    const tempo = setInterval(recarregar, 60000); // pega a chave do login ligada ou desligada
+    const tempo = setInterval(recarregar, 60000); // pega perfil desativado ou trocado pelo dono
     return () => {
       clearInterval(tempo);
       data.subscription.unsubscribe();

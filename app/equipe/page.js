@@ -6,16 +6,16 @@ import { supabase } from '../../lib/supabase';
 import { useSessao } from '../componentes/Sessao';
 import { PERFIS } from '../../lib/permissoes';
 
-// Só o dono: dar perfil a quem já tem acesso, desativar pessoas e ligar a trava do login.
-// O banco confere tudo de novo (funções equipe, definir_perfil, definir_login_obrigatorio).
+// Só o dono: dar perfil a quem já tem acesso e desativar pessoas.
+// O banco confere tudo de novo (funções equipe e definir_perfil). O login é sempre exigido
+// (migration 013): não existe mais o botão de voltar ao modo aberto.
 export default function Equipe() {
-  const { perfil, loginObrigatorio, recarregar } = useSessao();
+  const { perfil } = useSessao();
   const [equipe, setEquipe] = useState([]);
   const [novos, setNovos] = useState([]);
   const [edicao, setEdicao] = useState({}); // user_id -> { nome, perfil, ativo }
   const [erro, setErro] = useState(null);
   const [aviso, setAviso] = useState(null);
-  const [confirmandoTrava, setConfirmandoTrava] = useState(false);
 
   const carregar = useCallback(async () => {
     const [eq, nv] = await Promise.all([supabase.rpc('equipe'), supabase.rpc('usuarios_sem_perfil')]);
@@ -59,15 +59,6 @@ export default function Equipe() {
       return resto;
     });
     carregar();
-  }
-
-  async function mudarTrava() {
-    const { error } = await supabase.rpc('definir_login_obrigatorio', { p_valor: !loginObrigatorio });
-    setConfirmandoTrava(false);
-    if (error) return setErro(error.message);
-    setErro(null);
-    setAviso(loginObrigatorio ? 'Sistema voltou ao modo aberto.' : 'A partir de agora todos precisam entrar.');
-    recarregar();
   }
 
   return (
@@ -151,35 +142,12 @@ export default function Equipe() {
       </section>
 
       <section className="card">
-        <h2>Trava do login</h2>
-        <p>
-          Agora o sistema está <b>{loginObrigatorio ? 'exigindo login' : 'aberto (sem exigir login)'}</b>.
+        <h2>Login</h2>
+        <p className="mudo">
+          O login é sempre exigido: só entra quem tem acesso e perfil ativo. Para tirar alguém, desmarque
+          &quot;Ativo&quot; acima (vale na hora). Se alguém esquecer a senha, redefina no painel do Supabase
+          (Authentication → Users).
         </p>
-        {!confirmandoTrava ? (
-          <>
-            <p className="mudo">
-              {loginObrigatorio
-                ? 'Voltar ao modo aberto libera o sistema para quem não entrou.'
-                : 'Antes de exigir login, confira que todo mundo já tem acesso liberado acima e sabe a própria senha. Quem não tiver acesso ficará de fora.'}
-            </p>
-            <button className={loginObrigatorio ? 'sec' : ''} onClick={() => setConfirmandoTrava(true)}>
-              {loginObrigatorio ? 'Voltar ao modo aberto' : 'Exigir login de todos'}
-            </button>
-          </>
-        ) : (
-          <>
-            <p>
-              <b>Tem certeza?</b>{' '}
-              {loginObrigatorio
-                ? 'O sistema volta a funcionar sem exigir login.'
-                : 'Daqui em diante só entra quem fizer login e tiver perfil ativo.'}
-            </p>
-            <div className="linha">
-              <button onClick={mudarTrava}>Sim, confirmar</button>
-              <button className="sec" onClick={() => setConfirmandoTrava(false)}>Voltar</button>
-            </div>
-          </>
-        )}
       </section>
     </>
   );

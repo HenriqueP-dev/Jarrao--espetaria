@@ -1,18 +1,23 @@
--- Teste de criar_pedido e mudar_estado_item (migrations 004 e 005), como o papel público.
+-- Teste de criar_pedido e mudar_estado_item (migrations 004 e 005), com um dono logado (antes: papel público, que a migration 013 fechou).
 -- NÃO deixa dados: termina com um erro proposital que desfaz tudo.
 -- Resultado esperado: erro começando com "TESTE_OK". Qualquer outra mensagem é falha.
 
 do $$
 declare
+  u_teste uuid := gen_random_uuid(); -- dono temporário (desfeito no fim)
   p_skol bigint; p_jant bigint;
   v_conta bigint; i_skol bigint; i_jant bigint; v_ok boolean;
 begin
-  update configuracao set exigir_login = false; -- este teste vale para o modo aberto (desfeito no fim)
+  -- desde a migration 013 não existe modo aberto: o teste usa um dono temporário, logado
+  insert into auth.users (id, email, aud, role, instance_id)
+  values (u_teste, u_teste::text || '@teste.invalid', 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000');
+  insert into perfis (user_id, nome, perfil, ativo) values (u_teste, 'Dono Teste', 'dono', true);
   select id into p_skol from produtos where nome = 'Skol 600ml' and ativo;
   select id into p_jant from produtos where nome = 'Jantinha Simples' and ativo;
   assert p_skol is not null and p_jant is not null, 'produtos de teste não encontrados';
 
-  execute 'set local role anon'; -- igual ao navegador
+  perform set_config('request.jwt.claims', json_build_object('sub', u_teste, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated'; -- igual ao navegador, logado
 
   -- mesa 905 não existe no cadastro: deve ser aceita e cadastrada na hora (migration 005)
   perform criar_pedido(905, jsonb_build_array(

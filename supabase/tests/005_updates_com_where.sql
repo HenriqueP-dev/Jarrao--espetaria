@@ -31,7 +31,8 @@ begin
   where f.s ~* padrao and f.s !~* '\ywhere\y';
   assert v_culpadas is null, 'UPDATE/DELETE sem WHERE nestas funções: ' || coalesce(v_culpadas, '');
 
-  -- o dono real liga e desliga a trava (a chamada que falhava pela tela)
+  -- o dono real confirma a trava ligada pela API (a chamada que falhava pela tela);
+  -- desligar não é mais possível desde a migration 013
   select id into u_dono from auth.users where email = 'dono@gmail.com';
   if u_dono is not null then
     perform set_config('request.jwt.claims', json_build_object('sub', u_dono, 'role', 'authenticated')::text, true);
@@ -39,13 +40,8 @@ begin
     perform definir_login_obrigatorio(true);
     execute 'reset role';
     select exigir_login into v_ligou from configuracao;
-    assert v_ligou, 'o dono deveria conseguir ligar a trava';
-    execute 'set local role authenticated';
-    perform definir_login_obrigatorio(false);
-    execute 'reset role';
-    select exigir_login into v_ligou from configuracao;
-    assert not v_ligou, 'o dono deveria conseguir desligar a trava';
+    assert v_ligou, 'o dono deveria conseguir confirmar a trava ligada';
   end if;
 
-  raise exception 'TESTE_OK: nenhum UPDATE/DELETE sem WHERE nas funções, e o dono liga e desliga a trava';
+  raise exception 'TESTE_OK: nenhum UPDATE/DELETE sem WHERE nas funções, e o dono confirma a trava pela função';
 end $$;

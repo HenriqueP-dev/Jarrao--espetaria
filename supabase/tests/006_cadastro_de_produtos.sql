@@ -97,13 +97,12 @@ begin
   assert v_ok, 'produto desativado não pode ser vendido';
   execute 'reset role';
 
-  -- mesmo com a trava desligada, sem login ninguém mexe no cardápio
-  update configuracao set exigir_login = false;
+  -- sem login ninguém mexe no cardápio
   perform set_config('request.jwt.claims', '', true);
   execute 'set local role anon';
   v_ok := false;
   begin perform salvar_produto(null, 'Invasor', 100, 'garcom', 'Teste', true, false); exception when others then v_ok := true; end;
-  assert v_ok, 'sem login ninguém altera o cardápio, nem com a trava desligada';
+  assert v_ok, 'sem login ninguém altera o cardápio';
   execute 'reset role';
 
   raise exception 'TESTE_OK: cadastro do dono, validações, histórico, pedidos antigos intactos e garçom sem acesso passaram';

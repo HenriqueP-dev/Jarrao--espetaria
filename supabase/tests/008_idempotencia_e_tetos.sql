@@ -4,16 +4,21 @@
 
 do $$
 declare
+  u_teste uuid := gen_random_uuid(); -- dono temporário (desfeito no fim)
   p_skol bigint; v_chave uuid := gen_random_uuid(); v_chave2 uuid := gen_random_uuid();
   v_ped1 bigint; v_ped2 bigint; v_conta bigint; v_ok boolean; v_n integer; v_pg uuid := gen_random_uuid();
   v_itens jsonb;
 begin
-  update configuracao set exigir_login = false where id = true; -- modo aberto só dentro deste teste (desfeito no fim)
+  -- desde a migration 013 não existe modo aberto: o teste usa um dono temporário, logado
+  insert into auth.users (id, email, aud, role, instance_id)
+  values (u_teste, u_teste::text || '@teste.invalid', 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000');
+  insert into perfis (user_id, nome, perfil, ativo) values (u_teste, 'Dono Teste', 'dono', true);
   select id into p_skol from produtos where nome = 'Skol 600ml' and ativo;
   assert p_skol is not null, 'produto de teste não encontrado';
   v_itens := jsonb_build_array(jsonb_build_object('produto_id', p_skol, 'quantidade', 2));
 
-  execute 'set local role anon'; -- igual ao navegador
+  perform set_config('request.jwt.claims', json_build_object('sub', u_teste, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated'; -- igual ao navegador, logado
 
   -- 1. mesma chave duas vezes = um só pedido, com os itens uma vez só
   v_ped1 := criar_pedido(971, v_itens, v_chave);

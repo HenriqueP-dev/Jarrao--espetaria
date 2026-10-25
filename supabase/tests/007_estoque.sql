@@ -161,12 +161,13 @@ begin
   select coalesce(sum(quantidade), 0) into v_saldo from estoque_movimentos where produto_id = p_skol;
   assert v_saldo = -59, 'vender além do estoque deixa o saldo negativo, sem bloquear';
 
-  -- trava desligada: sem login só o que é "do dia a dia"; configurar continua só com o dono -----------------------
-  update configuracao set exigir_login = false;
+  -- sem login ninguém lança nem configura estoque -----------------------------------------------------------------
   perform set_config('request.jwt.claims', '', true);
   execute 'set local role anon';
   v_ok := false; begin perform definir_controle_estoque(p_skol, false, 0); exception when others then v_ok := true; end;
-  assert v_ok, 'sem login ninguém configura o estoque, nem com a trava desligada';
+  assert v_ok, 'sem login ninguém configura o estoque';
+  v_ok := false; begin perform registrar_entrada_estoque(p_skol, 1); exception when others then v_ok := true; end;
+  assert v_ok, 'sem login ninguém lança entrada';
   execute 'reset role';
 
   raise exception 'TESTE_OK: configuração do dono, entradas por embalagem, baixa automática, estorno só antes do preparo, perda, consumo, contagem, saldo negativo e permissões passaram';

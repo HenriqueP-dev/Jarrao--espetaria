@@ -1,4 +1,4 @@
--- Teste das funções da migration 006, como o papel público (anon) do navegador.
+-- Teste das funções da migration 006, com um dono logado (antes: papel público anon, fechado na migration 013).
 -- NÃO deixa dados: termina com um erro proposital que desfaz tudo.
 -- Resultado esperado: erro começando com "TESTE_OK". Qualquer outra mensagem é falha
 -- (uma "assert" que não passou mostra qual regra quebrou).
@@ -6,19 +6,24 @@
 
 do $$
 declare
+  u_teste uuid := gen_random_uuid(); -- dono temporário (desfeito no fim)
   p_skol bigint; p_carne bigint; p_quibe bigint;
   v_conta bigint;
   i_carne bigint; i_quibe bigint; i_skol bigint;
   v_n int; v_estado text; v_mesa int; v_ok boolean;
 begin
-  update configuracao set exigir_login = false; -- este teste vale para o modo aberto (desfeito no fim)
+  -- desde a migration 013 não existe modo aberto: o teste usa um dono temporário, logado
+  insert into auth.users (id, email, aud, role, instance_id)
+  values (u_teste, u_teste::text || '@teste.invalid', 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000');
+  insert into perfis (user_id, nome, perfil, ativo) values (u_teste, 'Dono Teste', 'dono', true);
   select id into p_skol from produtos where nome = 'Skol 600ml' and ativo;
   select id into p_carne from produtos where nome = 'Carne' and categoria = 'Espetos da casa' and ativo;
   select id into p_quibe from produtos where nome = 'Quibe Carne' and ativo;
   assert p_skol is not null and p_carne is not null and p_quibe is not null,
     'produtos de teste não encontrados';
 
-  execute 'set local role anon'; -- igual ao navegador
+  perform set_config('request.jwt.claims', json_build_object('sub', u_teste, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated'; -- igual ao navegador, logado
 
   -- mesa de teste (nunca usada de verdade): 901
   perform criar_pedido(901, jsonb_build_array(

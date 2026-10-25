@@ -31,19 +31,21 @@ begin
     (u_dono, 'Dono Teste', 'dono', true),
     (u_inativo, 'Inativo Teste', 'garcom', false);
 
-  -- liga a trava (só nesta transação)
-  update configuracao set exigir_login = true;
+  -- (o login é sempre exigido desde a migration 013)
 
-  -- A. sem login (anon) ------------------------------------------------------------
+  -- A. sem login (anon): nem executa as funções, nem lê as tabelas ---------------------------
   perform set_config('request.jwt.claims', '', true);
   execute 'set local role anon';
   v_ok := false;
   begin perform criar_pedido(911, jsonb_build_array(jsonb_build_object('produto_id', p_skol, 'quantidade', 1)));
-  exception when others then v_ok := true; end;
+  exception when insufficient_privilege then v_ok := true; end;
   assert v_ok, 'sem login não pode lançar pedido';
-  assert (select count(*) from produtos) = 0, 'sem login não pode ler produtos';
-  assert (select count(*) from contas) = 0, 'sem login não pode ler contas';
-  assert (select count(*) from pagamentos) = 0, 'sem login não pode ler pagamentos';
+  v_ok := false; begin perform count(*) from produtos; exception when insufficient_privilege then v_ok := true; end;
+  assert v_ok, 'sem login não pode ler produtos';
+  v_ok := false; begin perform count(*) from contas; exception when insufficient_privilege then v_ok := true; end;
+  assert v_ok, 'sem login não pode ler contas';
+  v_ok := false; begin perform count(*) from pagamentos; exception when insufficient_privilege then v_ok := true; end;
+  assert v_ok, 'sem login não pode ler pagamentos';
   assert (select exigir_login from configuracao) = true, 'a tela precisa conseguir ler a chave sem login';
   v_ok := false;
   begin perform definir_login_obrigatorio(false); exception when others then v_ok := true; end;
@@ -196,16 +198,20 @@ begin
   assert v_ok, 'garçom desativado deve perder o acesso na hora';
   execute 'reset role';
 
-  -- H. dono desliga a trava: volta o modo aberto ----------------------------------------------------
+  -- H. nem o dono consegue voltar ao modo aberto (migration 013) ---------------------------------------
   perform set_config('request.jwt.claims', json_build_object('sub', u_dono, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
-  perform definir_login_obrigatorio(false);
+  v_ok := false; begin perform definir_login_obrigatorio(false); exception when others then v_ok := true; end;
+  assert v_ok, 'o modo aberto não pode mais ser ligado';
   execute 'reset role';
-  assert (select exigir_login from configuracao) = false, 'dono deve conseguir desligar a trava';
+  assert (select exigir_login from configuracao) = true, 'a trava continua ligada';
   perform set_config('request.jwt.claims', '', true);
   execute 'set local role anon';
-  perform criar_pedido(916, jsonb_build_array(jsonb_build_object('produto_id', p_skol, 'quantidade', 1)));
+  v_ok := false;
+  begin perform criar_pedido(916, jsonb_build_array(jsonb_build_object('produto_id', p_skol, 'quantidade', 1)));
+  exception when insufficient_privilege then v_ok := true; end;
+  assert v_ok, 'sem login continua sem lançar pedido';
   execute 'reset role';
 
-  raise exception 'TESTE_OK: sem login, sem perfil, desativado, garçom, churrasqueira, cozinha, caixa, dono, autor no histórico e desligar a trava passaram';
+  raise exception 'TESTE_OK: sem login, sem perfil, desativado, garçom, churrasqueira, cozinha, caixa, dono, autor no histórico e modo aberto bloqueado passaram';
 end $$;

@@ -18,7 +18,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 ## Como rodar
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql`, `supabase/migrations/007_relatorio_vendas.sql`, `supabase/migrations/008_login_permissoes.sql`, `supabase/migrations/009_corrige_trava_do_login.sql`, `supabase/migrations/010_cadastro_de_produtos.sql`, `supabase/migrations/011_estoque.sql` e `supabase/migrations/012_idempotencia_e_tetos.sql`.
+2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql`, `supabase/migrations/007_relatorio_vendas.sql`, `supabase/migrations/008_login_permissoes.sql`, `supabase/migrations/009_corrige_trava_do_login.sql`, `supabase/migrations/010_cadastro_de_produtos.sql`, `supabase/migrations/011_estoque.sql`, `supabase/migrations/012_idempotencia_e_tetos.sql`, `supabase/migrations/013_sem_acesso_anonimo.sql` e `supabase/migrations/014_funcoes_novas_sem_public.sql`. Depois crie o primeiro acesso no painel (Authentication → Users) e dê a ele o perfil de dono por SQL (`insert into perfis (user_id, nome, perfil, ativo) values ('<id do usuário>', 'Seu nome', 'dono', true);`).
 3. Copie `.env.example` para `.env.local` e preencha a URL e a chave `anon` (Project Settings → API).
 4. Instale e rode:
    ```
@@ -44,7 +44,7 @@ Testes das funções do banco: arquivos em `supabase/tests/`. Cada um roda no SQ
 - Nas telas da cozinha e da churrasqueira, item cancelado aparece num quadro vermelho até alguém tocar em "Ciente".
 
 ## Login e permissões
-Já existe (migration 008), mas **a trava está desligada**: o sistema continua aberto como no protótipo. Com a trava ligada, só entra quem tem login e perfil ativo (garçom, cozinha, churrasqueira, caixa ou dono), e o banco confere o perfil em cada ação. O dono liga e desliga a trava e define os perfis na tela `/equipe`; as telas `/entrar` e `/equipe` já estão no menu. O passo a passo para ligar com segurança está em [docs/DECISOES.md](docs/DECISOES.md), seção 3 ("Login e permissões").
+O login é **sempre exigido** (migrations 008, 013 e 014): só entra quem tem acesso e perfil ativo (garçom, cozinha, churrasqueira, caixa ou dono), e o banco confere o perfil em cada ação. Sem login, a API não lê nem grava nada. As contas são criadas no painel do Supabase (Authentication → Users → Add user) e o dono define o perfil de cada uma em `/equipe`. Detalhes em [docs/DECISOES.md](docs/DECISOES.md), seção 3.
 
 ## Rumo ao uso real
 Veja [docs/PLANO_PROFISSIONAL.md](docs/PLANO_PROFISSIONAL.md).
