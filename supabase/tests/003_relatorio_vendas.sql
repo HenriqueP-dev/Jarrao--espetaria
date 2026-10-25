@@ -10,6 +10,7 @@ declare
   v_conta bigint; i_skol bigint; i_carne bigint; v_total bigint; v_ok boolean;
   v_qtd_skol_antes bigint; v_qtd_skol_depois bigint;
 begin
+  update configuracao set exigir_login = false; -- este teste vale para o modo aberto (desfeito no fim)
   select id into p_skol from produtos where nome = 'Skol 600ml' and ativo;
   select id into p_carne from produtos where nome = 'Carne' and categoria = 'Espetos da casa' and ativo;
   assert p_skol is not null and p_carne is not null, 'produtos de teste não encontrados';

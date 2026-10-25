@@ -13,6 +13,8 @@ const LINKS = [
   ['/mesas', 'Mesas'],
   ['/caixa', 'Caixa'],
   ['/vendas', 'Vendas'],
+  ['/estoque', 'Estoque'],
+  ['/produtos', 'Produtos'],
   ['/equipe', 'Equipe'],
 ];
 
@@ -56,6 +58,7 @@ export default function Cabecalho() {
               <b>{nome ?? usuario.email}</b>
               {perfil && <small>{PERFIS[perfil]}</small>}
             </span>
+            <Link href="/senha" className="senha-link">Trocar senha</Link>
             <button className="sec" onClick={sair}>Sair</button>
           </div>
         )}

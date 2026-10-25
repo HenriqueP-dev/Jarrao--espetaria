@@ -98,11 +98,24 @@ describe('menu', () => {
   const links = [['/garcom', 'Garçom'], ['/caixa', 'Caixa'], ['/vendas', 'Vendas'], ['/equipe', 'Equipe']];
   const hrefs = (r) => r.map(([h]) => h);
 
-  it('trava desligada: mostra tudo, e "Equipe" só para o dono', () => {
-    expect(hrefs(linksDoMenu(links, { carregando: false, loginObrigatorio: false, perfil: null }))).toEqual([
+  it('trava desligada: mostra tudo, e "Equipe" e "Produtos" só para o dono', () => {
+    const comProdutos = [...links, ['/produtos', 'Produtos']];
+    expect(hrefs(linksDoMenu(comProdutos, { carregando: false, loginObrigatorio: false, perfil: null }))).toEqual([
       '/garcom', '/caixa', '/vendas',
     ]);
-    expect(hrefs(linksDoMenu(links, { carregando: false, loginObrigatorio: false, perfil: 'dono' }))).toContain('/equipe');
+    const doDono = hrefs(linksDoMenu(comProdutos, { carregando: false, loginObrigatorio: false, perfil: 'dono' }));
+    expect(doDono).toContain('/equipe');
+    expect(doDono).toContain('/produtos');
+  });
+
+  it('estoque: caixa e dono; produtos: só o dono', () => {
+    expect(podeAcessar('caixa', '/estoque')).toBe(true);
+    expect(podeAcessar('dono', '/estoque')).toBe(true);
+    expect(podeAcessar('garcom', '/estoque')).toBe(false);
+    expect(podeAcessar('cozinha', '/estoque')).toBe(false);
+    expect(podeAcessar('dono', '/produtos')).toBe(true);
+    expect(podeAcessar('caixa', '/produtos')).toBe(false);
+    expect(podeAcessar('garcom', '/produtos')).toBe(false);
   });
 
   it('trava ligada: só as telas do perfil; sem perfil, nada', () => {

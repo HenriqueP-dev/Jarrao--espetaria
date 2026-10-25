@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSessao } from './componentes/Sessao';
-import { podeAcessar } from '../lib/permissoes';
+import { TELAS_SO_DO_DONO, podeAcessar } from '../lib/permissoes';
 
 const ATALHOS = [
   ['/garcom', 'Garçom', 'Escolher a mesa e lançar o pedido.'],
@@ -11,6 +11,8 @@ const ATALHOS = [
   ['/mesas', 'Mesas', 'Contas abertas, entrega e histórico.'],
   ['/caixa', 'Caixa', 'Conferir a conta, receber e fechar.'],
   ['/vendas', 'Vendas', 'Quanto vendeu, o que mais saiu e como foi pago.'],
+  ['/estoque', 'Estoque', 'Entradas, perdas, contagem e o que está acabando.'],
+  ['/produtos', 'Produtos', 'Cardápio: preços, setores e o que está à venda.'],
   ['/equipe', 'Equipe', 'Quem tem acesso e o que cada um pode fazer.'],
 ];
 
@@ -18,7 +20,7 @@ export default function Inicio() {
   const { loginObrigatorio, perfil } = useSessao();
   // Sem a trava, o protótipo continua aberto (menos "Equipe", que é só do dono).
   const atalhos = ATALHOS.filter(([href]) =>
-    loginObrigatorio ? podeAcessar(perfil, href) : href !== '/equipe' || perfil === 'dono'
+    loginObrigatorio ? podeAcessar(perfil, href) : !TELAS_SO_DO_DONO.includes(href) || perfil === 'dono'
   );
   return (
     <>

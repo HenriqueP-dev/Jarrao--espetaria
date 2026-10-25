@@ -7,6 +7,7 @@ declare
   p_skol bigint; p_jant bigint;
   v_conta bigint; i_skol bigint; i_jant bigint; v_ok boolean;
 begin
+  update configuracao set exigir_login = false; -- este teste vale para o modo aberto (desfeito no fim)
   select id into p_skol from produtos where nome = 'Skol 600ml' and ativo;
   select id into p_jant from produtos where nome = 'Jantinha Simples' and ativo;
   assert p_skol is not null and p_jant is not null, 'produtos de teste não encontrados';

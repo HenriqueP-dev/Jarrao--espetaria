@@ -11,6 +11,7 @@ declare
   i_carne bigint; i_quibe bigint; i_skol bigint;
   v_n int; v_estado text; v_mesa int; v_ok boolean;
 begin
+  update configuracao set exigir_login = false; -- este teste vale para o modo aberto (desfeito no fim)
   select id into p_skol from produtos where nome = 'Skol 600ml' and ativo;
   select id into p_carne from produtos where nome = 'Carne' and categoria = 'Espetos da casa' and ativo;
   select id into p_quibe from produtos where nome = 'Quibe Carne' and ativo;

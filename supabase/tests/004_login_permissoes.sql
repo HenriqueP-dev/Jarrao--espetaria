@@ -169,6 +169,10 @@ begin
   execute 'reset role';
   assert (select status from contas where id = v_conta) = 'fechada', 'caixa deve conseguir fechar a conta';
 
+  -- (as contas reais de teste também têm um dono: desativa-o só nesta transação, para o dono de
+  -- teste ser o único e a regra "nunca ficar sem dono" poder ser conferida)
+  update perfis set ativo = false where perfil = 'dono' and user_id <> u_dono;
+
   -- G. dono: equipe e a trava ---------------------------------------------------------------------
   perform set_config('request.jwt.claims', json_build_object('sub', u_dono, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
