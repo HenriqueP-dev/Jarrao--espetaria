@@ -10,6 +10,7 @@ import {
   fichasPorColuna,
   itensParaAvancar,
   minutosDesde,
+  separarCancelados,
   urgencia,
 } from '../../lib/setor';
 
@@ -17,6 +18,8 @@ import {
 // Visual pensado para churrasqueira e cozinha (direção em direcao_visual/):
 // colunas Kanban e uma ficha por mesa com um único botão grande.
 // "Entregue" é registrado na tela Mesas (hipótese: quem entrega é o garçom).
+// Cancelamentos aparecem num quadro vermelho no topo até alguém tocar em "Ciente"
+// (hipótese: ver docs/DECISOES.md).
 export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
   const [itens, setItens] = useState([]);
   const [erro, setErro] = useState(null);
@@ -28,7 +31,7 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
       .from('itens_pedido')
       .select('*, contas(mesa_numero)')
       .eq('setor', setor)
-      .in('estado', ['novo', 'em_preparo', 'pronto'])
+      .or('estado.in.(novo,em_preparo,pronto),and(estado.eq.cancelado,cancelamento_visto_em.is.null)')
       .order('criado_em');
     if (error) return setErro(error.message);
     setErro(null);
@@ -40,6 +43,7 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
     const canal = supabase
       .channel(`setor-${setor}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'itens_pedido' }, carregar)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contas' }, carregar)
       .subscribe();
     const tempo = setInterval(carregar, 15000); // reserva caso o tempo real falhe
     const relogio = setInterval(() => setAgora(Date.now()), 30000);
@@ -56,29 +60,51 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
     else carregar();
   }
 
-  // Muda todos os itens da ficha que ainda podem mudar (um por vez no banco).
+  // Muda todos os itens da ficha que ainda podem mudar, tudo ou nada (uma só chamada).
   async function avancarFicha(ficha, destino) {
-    const alvos = itensParaAvancar(ficha.itens, destino);
-    const respostas = await Promise.all(
-      alvos.map((i) => supabase.rpc('mudar_estado_item', { p_item: i.id, p_novo: destino }))
-    );
-    const falha = respostas.find((r) => r.error);
-    setErro(falha ? falha.error.message : null);
+    const ids = itensParaAvancar(ficha.itens, destino).map((i) => i.id);
+    if (!ids.length) return;
+    const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: destino });
+    setErro(error ? error.message : null);
     carregar();
   }
 
-  const colunas = useMemo(() => fichasPorColuna(itens, busca), [itens, busca]);
+  async function darCiente(id) {
+    const { error } = await supabase.rpc('confirmar_cancelamento', { p_item: id });
+    setErro(error ? error.message : null);
+    carregar();
+  }
+
+  const { ativos, cancelados } = useMemo(() => separarCancelados(itens), [itens]);
+  const colunas = useMemo(() => fichasPorColuna(ativos, busca), [ativos, busca]);
 
   return (
     <>
       <div className="linha espaco">
         <h1>{titulo}</h1>
         <span className="contador-topo" aria-live="polite">
-          {faltaFazer(itens)} {unidade} p/ fazer
+          {faltaFazer(ativos)} {unidade} p/ fazer
         </span>
       </div>
       {!configurado && <div className="aviso">Supabase não configurado (veja o README).</div>}
       {erro && <div className="erro">{erro}</div>}
+
+      {/* Cancelados que o setor ainda não viu: ninguém deve preparar isto. */}
+      {cancelados.length > 0 && (
+        <section className="quadro-cancelado" role="alert" aria-label="Itens cancelados">
+          <h2>Cancelado: não preparar</h2>
+          {cancelados.map((i) => (
+            <div key={i.id} className="cancelado-linha">
+              <div>
+                <b>Mesa {i.contas?.mesa_numero}</b> · {i.quantidade}x {i.nome_produto}
+                {i.detalhe && <span> ({i.detalhe})</span>}
+                {i.pessoa && <span className="mudo"> · {i.pessoa}</span>}
+              </div>
+              <button className="perigo" onClick={() => darCiente(i.id)}>Ciente</button>
+            </div>
+          ))}
+        </section>
+      )}
 
       <input
         className="busca"

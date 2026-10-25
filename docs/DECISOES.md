@@ -23,14 +23,18 @@ Referências: [CONTEXTO_DO_PROJETO.md](CONTEXTO_DO_PROJETO.md) (como o restauran
 - Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel na publicação futura.
 - Estado controlado por item.
 - Sem login no protótipo, só com dados fictícios. **Login é obrigatório antes de qualquer uso real.** Segurança fica para depois do protótipo, por decisão do desenvolvedor.
-- Migrations SQL numeradas em `supabase/migrations/` (001 a 004 aplicadas e validadas à mão; a 005, de mesa livre, foi escrita em 23/10 e aplicada em 25/10, conferida por consulta de leitura).
+- Migrations SQL numeradas em `supabase/migrations/` (001 a 004 aplicadas e validadas à mão; a 005, de mesa livre, foi escrita em 23/10 e aplicada em 25/10, conferida por consulta de leitura; a 006, de cancelamento visível, lote atômico, troca de mesa e mover item, foi aplicada em 25/10 pela ferramenta de migrations do Supabase e testada; a 007, do relatório de vendas, também).
 - Não publicar, contratar serviços, gastar dinheiro nem fazer commit sem autorização do desenvolvedor.
 
 ## 2. Estado do protótipo
 
 Validado à mão em 2026-10-22, com dados fictícios, depois das migrations 001 a 003: pedido do garçom → setores em tempo real → preparo → entrega → cancelamento → pagamento parcial → fechamento da conta. Depois, o desenvolvedor também validou à mão a migration 004 (cardápio real, setor garçom, observação e escolha do espeto na jantinha) e confirmou que funcionou.
 
-Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesas por blocos, Caixa em duas colunas) e a mesa passou a ser livre (1 a 999). Hoje existem **50 testes automáticos** das regras em JavaScript (5 arquivos), todos passando, e o build funciona. As funções do banco ainda não têm testes automáticos. Para as telas refeitas em 23/10 não há registro de validação à mão. Uma consulta de leitura em 24/10 mostrou que a migration 005 ainda não estava no banco (a função `criar_pedido` antiga respondia "Mesa N não existe"). O desenvolvedor aplicou a 005 em 25/10 e uma nova consulta confirmou a função nova: mesa 0 e mesa 1000 são recusadas com "Mesa inválida", e nenhum pedido foi gravado no teste. Em 25/10 foi feito um teste das funções do banco **numa transação desfeita** (nada ficou gravado), chamando como o papel público: pedido na mesa 9 aceito (mesa cadastrada na hora, conta aberta, 2 itens, bebida no setor garçom, jantinha na churrasqueira com o espeto na observação, 3 eventos no histórico); mesa 30 aceita; bebida foi de Novo para Entregue; jantinha de Novo para Entregue recusada; jantinha sem espeto recusada. Ainda falta validar a tela `/garcom` no navegador com uma mesa fora das 22.
+Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesas por blocos, Caixa em duas colunas) e a mesa passou a ser livre (1 a 999). Hoje existem **50 testes automáticos** das regras em JavaScript (5 arquivos), todos passando, e o build funciona. As funções do banco ainda não têm testes automáticos. Para as telas refeitas em 23/10 não há registro de validação à mão. Uma consulta de leitura em 24/10 mostrou que a migration 005 ainda não estava no banco (a função `criar_pedido` antiga respondia "Mesa N não existe"). O desenvolvedor aplicou a 005 em 25/10 e uma nova consulta confirmou a função nova: mesa 0 e mesa 1000 são recusadas com "Mesa inválida", e nenhum pedido foi gravado no teste. Em 25/10 foi feito um teste das funções do banco **numa transação desfeita** (nada ficou gravado), chamando como o papel público: pedido na mesa 9 aceito (mesa cadastrada na hora, conta aberta, 2 itens, bebida no setor garçom, jantinha na churrasqueira com o espeto na observação, 3 eventos no histórico); mesa 30 aceita; bebida foi de Novo para Entregue; jantinha de Novo para Entregue recusada; jantinha sem espeto recusada. A tela `/garcom` também aceitou um pedido real na mesa 998 (fora das 22).
+
+Em 25/10, com a migration 006 aplicada, o Claude Code testou **no navegador e no banco** (53 testes em JavaScript, mais os testes SQL de `supabase/tests/`, todos passando): cancelar um item faz o aviso vermelho aparecer sozinho na tela do setor (churrasqueira e cozinha, inclusive para item cancelado já pronto); "Ciente" tira o aviso e grava `cancelamento_visto` no histórico; "Iniciar preparo" e "Pronto" agem em lote; trocar a conta de mesa e mover um item para outra pessoa funcionam com confirmação; o caixa mostra o histórico da conta; a conta de teste foi fechada pelo caixa com total zero. Esse teste deixou no banco as mesas 997 e 998 cadastradas e uma conta de teste fechada (mesa 997, sem valor, sem pagamento): ignorar em relatórios futuros. Não testado pela tela: o botão "Entregue" em lote de `/mesas` (a função do banco foi testada), a recusa de troca para mesa com conta aberta pela tela (testada no banco) e o uso em celular real.
+
+Depois, a tela `/vendas` (relatório) foi conferida no navegador com os dados reais, em computador e em celular simulado: os totais (R$ 2.136,00 vendidos e recebidos, 26 contas pagas, 2 cancelamentos) batem com uma conta feita direto nas tabelas, a dica ao passar o mouse funciona, o menu de seis itens cabe no celular, e o teste SQL `003_relatorio_vendas.sql` passou.
 
 ## Identidade visual
 
@@ -77,6 +81,17 @@ Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesa
 - [Código] Hipóteses de setor a confirmar: doces → churrasqueira; caipiroska e saqueirinha → cozinha (como a caipirinha); adicionais da jantinha e dos espetos → churrasqueira; sucos e águas → garçom.
 - [Código] Os produtos fictícios foram **desativados**, não apagados, para o histórico de testes continuar consistente.
 - [Código] Fora do cadastro por falta de preço ou informação: salada de rúcula, torresmo, frios, amendoim (meia), 51 Ice (sabores) e Amstel/Eisenbahn/Helles (um preço para três cervejas). Kibe Cru entrou como tamanho único a R$ 15,00.
+- [Código] (migration 006) **Cancelamento visível ao setor, hipótese a confirmar com a equipe:** o item cancelado sai da fila e aparece num quadro vermelho no topo da tela da cozinha ou da churrasqueira ("Cancelado: não preparar") até alguém tocar em **"Ciente"**; isso grava o evento `cancelamento_visto`. Vale para qualquer item cancelado do setor, mesmo já pronto. Bebidas (setor garçom) não têm tela de setor.
+- [Código] (006) **Troca de mesa, hipótese:** a conta inteira passa para outra mesa (1 a 999), com confirmação em dois passos e evento `mesa_trocada`. É **recusada se a mesa de destino já tem conta aberta** (nada é misturado) e se a conta já está fechada.
+- [Código] (006) **Mover item entre pessoas:** botão "Pessoa" em cada item de `/mesas`, com confirmação e evento `item_pessoa_alterada` (nome antigo e novo). Vale para item não cancelado de conta aberta; nome em branco tira a pessoa. Sem restrição de quem pode fazer, por falta de login.
+- [Código] (006) Mudar vários itens de uma vez (botões da ficha e "Entregue" por bloco) é **tudo ou nada**: se um item não puder mudar, nenhum muda.
+- [Código] (006) Limites de tamanho: pessoa até 60 letras, observação até 200.
+- [Código] Em `/mesas`, "Em andamento" conta só o que a cozinha e a churrasqueira ainda fazem, e "Para entregar" inclui as bebidas ainda não entregues (antes o rótulo "Em preparo" contava também esses itens).
+- [Código] Segurança, relatório do Supabase de 25/10: as 8 funções de gravação (`criar_pedido`, `mudar_estado_item`, `mudar_estado_itens`, `confirmar_cancelamento`, `trocar_mesa`, `mudar_pessoa_item`, `registrar_pagamento`, `fechar_conta`) são executáveis sem login (papel `anon`). É esperado no protótipo e fica para a etapa de login, junto com o autor em cada evento.
+- [Pendente] **Troca de um item por outro** (A5) não foi feita: o exemplo do desenvolvedor é com o pedido já entregue na mesa, e hoje item entregue não pode ser cancelado. Precisa de decisão do dono sobre o destino do item entregue (perda, cobrança, estoque).
+- [Pendente] **Cadastro de produtos por tela** adiado de propósito: sem login, qualquer pessoa com o endereço poderia mudar preços.
+- [Código] (migration 007, tela `/vendas`) **Primeira versão do relatório de vendas, hipóteses a confirmar com o dono:** "vendido" = itens não cancelados das contas **fechadas pelo caixa** no período; o dia de uma venda é o **dia do fechamento da conta**, no horário de Brasília (um expediente que passa da meia-noite é dividido em dois dias); "recebido" = pagamentos registrados no período, por forma; cancelamentos = itens cancelados no período, de qualquer conta; ticket médio = vendido ÷ contas pagas (contas de total zero não contam). Períodos: hoje, ontem, 7 dias, 30 dias, este mês, este ano ou datas escolhidas; acima de 62 dias o gráfico agrupa por mês. Mostra total, ticket médio, recebido, cancelados, gráfico por dia, 10 mais vendidos (por quantidade), formas de pagamento e versões em tabela. Contas abertas não entram. Não inclui lucro (faltam os custos), por garçom, por setor, nem exportação.
+- [Pendente] O relatório de vendas, como o resto, está **sem login**: qualquer pessoa com o endereço vê os números. Restringir aos donos na etapa de login (F3).
 
 ---
 
@@ -93,8 +108,8 @@ Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesa
 - [Fato] Hoje: separa por nome quando os itens estão bem identificados; se a identificação está incompleta, o garçom pede o total e subtrai na mesa com o pessoal. A divisão usa a calculadora da maquininha.
 - [Preferência] Uma conta por mesa com vários pagamentos e saldo restante (A1). [Pendente] confirmar com o dono e o caixa.
 - [Preferência] Divisão detalhada de itens compartilhados no sistema fica para depois do protótipo (A2).
-- [Preferência] Mover itens entre pessoas com um botão e confirmação (A3). [Proposta] registrar no histórico e limitar a usuários autorizados. [Pendente] se entra na primeira versão.
-- [Preferência] Transferir a conta para outra mesa com botão e confirmação "tem certeza?" (A4). [Pendente] o que fazer se a mesa de destino já tem conta aberta.
+- [Preferência] Mover itens entre pessoas com um botão e confirmação (A3). [Proposta] registrar no histórico e limitar a usuários autorizados. [Código] Implementado em `/mesas` (006), com confirmação e histórico, sem restrição de quem pode por falta de login.
+- [Preferência] Transferir a conta para outra mesa com botão e confirmação "tem certeza?" (A4). [Código] Hipótese implementada (006): a troca é recusada se a mesa de destino já tem conta aberta. [Pendente] confirmar com o dono.
 - [Preferência] Trocar um item por outro depois de enviado, com confirmação; o novo item vai direto ao setor correto (A5). Exemplo: 2 carnes e 1 frango, trocar 1 carne por 1 tulipa, com o pedido já na mesa. O sistema deve registrar o ajuste do item antigo e o novo lançamento. [Pendente] o que acontece com o item antigo já preparado ou entregue (perda, reaproveitado, estoque).
 - [Preferência] Nomes de clientes: só o nome da pessoa, sem descrições físicas ou apelidos (H3).
 
@@ -117,7 +132,7 @@ Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesa
 - [Preferência/ideia] O sistema registrar **quem** marcou o item como Entregue, para esclarecer essas situações. Depende de login.
 - [Fato] Pedido feito errado: não é registrado; o funcionário avisa o dono, que decide (às vezes manda outro espeto, geralmente sem desconto) (C4). O sistema não presume desconto nem perda.
 - [Fato] Produto indisponível: avisado verbalmente aos garçons (C3). [Preferência/ideia] marcar o produto como indisponível no sistema; a churrasqueira poderia marcar (exemplo: Romeu e Julieta); possivelmente automático quando o estoque chegar a zero. [Pendente] confirmar essa interpretação e quem terá a permissão.
-- [Preferência] Cancelamentos devem ficar claramente visíveis ao setor, para ninguém continuar preparando um item cancelado (C5). [Pendente] como o setor confirma que viu.
+- [Preferência] Cancelamentos devem ficar claramente visíveis ao setor, para ninguém continuar preparando um item cancelado (C5). [Código] Hipótese implementada: botão "Ciente" no quadro de cancelados da tela do setor (006). [Pendente] confirmar com a equipe.
 
 ### D. Produtos e cardápio
 - Cardápio e preços informados pelo desenvolvedor estão em [CARDAPIO.md](CARDAPIO.md). Itens sem preço **não** são cadastrados (nem com valor zero).
@@ -145,7 +160,7 @@ Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesa
 - [Preferência] Valores vendidos por dia, semana, mês e ano, com o máximo de histórico possível.
 - [Preferência] Consultar dentro do sistema (inclusive pelo celular). Sem exportar nem imprimir por enquanto.
 - [Preferência] Ver lucro. [Proposta] só será confiável depois de cadastrar os custos dos produtos.
-- [Proposta] Primeiros relatórios: vendas por período, vendas por produto, pagamentos por forma, contas abertas e fechadas, cancelamentos.
+- [Proposta] Primeiros relatórios: vendas por período, vendas por produto, pagamentos por forma, contas abertas e fechadas, cancelamentos. [Código] Feitos em `/vendas` (007), exceto "contas abertas e fechadas" como lista; ver as hipóteses na seção 3.
 
 ### H. Fiscal, privacidade e retenção
 - [Pendente] O desenvolvedor não sabe qual sistema fiscal o restaurante usa (H1) nem como o sistema conviverá com ele (H2). Falar com o dono e o contador.
@@ -175,13 +190,13 @@ Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesa
 | Cancelamento | Qualquer pessoa em `/mesas` cancela | Só a dona (exige login e permissões) |
 | Cardápio | Resolvido na migration 004 (aplicada): 133 produtos reais ativos, sem os itens sem preço | Cardápio real (apenas itens com preço informado) |
 | Produtos | Resolvido na migration 004 (aplicada): categorias, observação, escolha do espeto e setor garçom | Meia/inteira, sabores, adicionais e escolha do espeto na jantinha |
-| Aviso no setor | Item cancelado some da lista | Cancelamento visível ao setor |
+| Aviso no setor | Resolvido (migration 006): quadro vermelho com botão "Ciente" na tela do setor | Cancelamento visível ao setor |
 | Telas dos setores | Resolvido: Kanban com as três colunas lado a lado (Novos, Em preparo, Prontos); no celular as colunas rolam para o lado | Quadro em colunas (Novos, Em preparo, Prontos) |
-| Troca de mesa, troca de item, mover item entre pessoas | Não existem | Com confirmação e histórico |
+| Troca de mesa, troca de item, mover item entre pessoas | Troca de mesa e mover item: resolvidos (006), com confirmação e histórico. Troca de item: não existe | Com confirmação e histórico |
 | Quem entregou | Não é registrado (sem login) | Registrar quem marcou Entregue |
 | Pix | Fora das formas de pagamento | Provavelmente entra, só como registro manual depois da conferência; confirmar com a dona |
 | Fiado | Não existe | Existe na operação; regras pendentes |
-| Estoque e relatórios | Não existem | Bebidas e espetos primeiro; relatórios por período |
+| Estoque e relatórios | Relatório de vendas: primeira versão em `/vendas` (007). Estoque: não existe | Bebidas e espetos primeiro; relatórios por período |
 
 ## 6. Pendências (precisam de resposta do dono ou da equipe)
 

@@ -6,6 +6,7 @@ const ATALHOS = [
   ['/churrasqueira', 'Churrasqueira', 'Espetos e jantinhas, em tempo real.'],
   ['/mesas', 'Mesas', 'Contas abertas, entrega e histórico.'],
   ['/caixa', 'Caixa', 'Conferir a conta, receber e fechar.'],
+  ['/vendas', 'Vendas', 'Quanto vendeu, o que mais saiu e como foi pago.'],
 ];
 
 export default function Inicio() {

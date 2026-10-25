@@ -10,6 +10,7 @@ const LINKS = [
   ['/churrasqueira', 'Churrasqueira'],
   ['/mesas', 'Mesas'],
   ['/caixa', 'Caixa'],
+  ['/vendas', 'Vendas'],
 ];
 
 // Cabeçalho fixo com o logo e o menu. A aba da página atual fica em amarelo.

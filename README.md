@@ -18,7 +18,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 ## Como rodar
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql` e `supabase/migrations/005_mesas_livres.sql`.
+2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql` e `supabase/migrations/007_relatorio_vendas.sql`.
 3. Copie `.env.example` para `.env.local` e preencha a URL e a chave `anon` (Project Settings → API).
 4. Instale e rode:
    ```
@@ -30,11 +30,15 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 Testes das regras: `npm test`.
 
+Testes das funções do banco: arquivos em `supabase/tests/`. Cada um roda no SQL Editor do Supabase, não deixa dados (termina com um erro proposital que desfaz tudo) e deve responder com uma mensagem começando em `TESTE_OK`.
+
 ## Telas
 - `/garcom` — digita a mesa e, se quiser, a pessoa (`12` ou `12/João`) e escolhe os itens.
 - `/cozinha`, `/churrasqueira` — quadro Kanban em tempo real (Novos, Em preparo, Prontos), uma ficha por mesa com os itens do setor.
-- `/mesas` — contas abertas, consumo por bloco (bebidas, espetos, cozinha), entrega, cancelamento e histórico.
-- `/caixa` — contas abertas, extrato, pagamentos (dinheiro, débito, crédito), saldo e fechamento da conta.
+- `/mesas` — contas abertas, consumo por bloco (bebidas, espetos, cozinha), entrega, cancelamento, troca de mesa, mover item entre pessoas e histórico.
+- `/caixa` — contas abertas, extrato, pagamentos (dinheiro, débito, crédito), saldo, histórico da conta e fechamento.
+- `/vendas` — relatório: total vendido, ticket médio, recebido, cancelados, gráfico por dia, mais vendidos e formas de pagamento, por período.
+- Nas telas da cozinha e da churrasqueira, item cancelado aparece num quadro vermelho até alguém tocar em "Ciente".
 
 ## Rumo ao uso real
 Veja [docs/PLANO_PROFISSIONAL.md](docs/PLANO_PROFISSIONAL.md).

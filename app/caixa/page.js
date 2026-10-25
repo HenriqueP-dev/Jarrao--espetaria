@@ -31,11 +31,12 @@ export default function Caixa() {
     if (error) return setErro(error.message);
 
     const ids = abertas.map((c) => c.id);
-    const [it, pg] = await Promise.all([
+    const [it, pg, hi] = await Promise.all([
       ids.length ? supabase.from('itens_pedido').select('*').in('conta_id', ids).order('criado_em') : { data: [] },
       ids.length ? supabase.from('pagamentos').select('*').in('conta_id', ids).order('criado_em') : { data: [] },
+      ids.length ? supabase.from('historico').select('*').in('conta_id', ids).order('criado_em').order('id') : { data: [] },
     ]);
-    if (it.error || pg.error) return setErro((it.error || pg.error).message);
+    if (it.error || pg.error || hi.error) return setErro((it.error || pg.error || hi.error).message);
 
     setErro(null);
     setContas(
@@ -43,6 +44,7 @@ export default function Caixa() {
         ...c,
         itens: it.data.filter((i) => i.conta_id === c.id),
         pagamentos: pg.data.filter((p) => p.conta_id === c.id),
+        historico: hi.data.filter((h) => h.conta_id === c.id),
       }))
     );
   }, []);
@@ -194,6 +196,18 @@ export default function Caixa() {
                 Fechar conta
               </button>
               {motivo && <p className="mudo">{motivo}</p>}
+
+              {conta.historico.length > 0 && (
+                <details className="historico-conta">
+                  <summary>Histórico da conta ({conta.historico.length})</summary>
+                  {conta.historico.map((h) => (
+                    <div key={h.id} className="mudo">
+                      {new Date(h.criado_em).toLocaleTimeString('pt-BR')} — {h.evento}
+                      {h.detalhe && `: ${h.detalhe}`}
+                    </div>
+                  ))}
+                </details>
+              )}
             </div>
           )}
         </section>

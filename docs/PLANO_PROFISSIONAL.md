@@ -18,13 +18,16 @@ Pronto (com dados fictícios):
 - Mesas e consumo por bloco, histórico da conta.
 - Caixa: pagamentos parciais (dinheiro, débito, crédito) e fechamento da conta.
 - Cardápio real cadastrado (133 produtos com preço informado).
-- Testes das regras em JavaScript (50 testes).
+- Cancelamento visível ao setor ("Ciente"), troca de mesa e mover item entre pessoas, com confirmação e histórico.
+- Histórico da conta também no caixa.
+- Relatório de vendas por período em `/vendas`, com gráfico, mais vendidos e formas de pagamento.
+- Testes das regras em JavaScript (53 testes) e testes SQL das funções do banco em `supabase/tests/` (rodados no Supabase, sem deixar dados).
 
 Limites conhecidos:
 - Sem login: qualquer pessoa com o endereço consegue usar e gravar.
 - Produtos só mudam pelo SQL.
-- Não existe separação de contas por pessoa, estoque nem relatórios.
-- As funções do banco foram testadas à mão, não automaticamente.
+- Não existe separação de contas por pessoa nem estoque. Relatórios: só a primeira versão (`/vendas`).
+- Os testes das funções do banco ainda precisam ser rodados à mão no Supabase (não há execução automática nem banco de teste separado).
 - Não é um sistema fiscal (veja o item 6).
 
 ---
@@ -35,14 +38,14 @@ Limites conhecidos:
 |---|---|---|---|
 | 2.1 | Corrigir os problemas observados nas telas (anotar cada um: tela, o que fez, o que esperava, o que aconteceu) | P1 | Os dois |
 | 2.2 | Tela de cadastro e edição de produtos (nome, preço, setor, ativo) | P1 | Eu |
-| 2.3 | Histórico da conta também visível no caixa | P1 | Eu |
+| 2.3 | ~~Histórico da conta também visível no caixa~~ Feito em 25/10 | P1 | Eu |
 | 2.4 | Separação de contas por pessoa (total por pessoa, pagar separado) | P2 | Os dois (regras abaixo) |
 | 2.5 | Item que acabou: marcar produto indisponível e avisar os garçons | P2 | Os dois |
-| 2.6 | Aviso no setor quando um item em preparo é cancelado (hoje ele some da lista) | P2 | Os dois |
-| 2.7 | Relatórios: vendas por período, quantidade por produto, contas e pagamentos, cancelamentos | P2 | Eu |
+| 2.6 | ~~Aviso no setor quando um item é cancelado~~ Feito em 25/10 (botão "Ciente"; a regra de confirmação ainda precisa ser aprovada pela equipe) | P2 | Os dois |
+| 2.7 | Relatórios: primeira versão feita em 25/10 (`/vendas`: vendas por período, mais vendidos, pagamentos por forma, cancelamentos). Faltam lucro (precisa dos custos), por garçom e exportação; as regras de "dia" e "vendido" precisam da aprovação do dono | P2 | Eu |
 | 2.8 | Estoque: cadastro, entradas, saídas das vendas, perdas e ajustes | P2 | Os dois |
 | 2.9 | Pix, se o restaurante aceitar | P2 | Você decide |
-| 2.10 | Mover item entre contas ou mesas (cliente trocou de mesa) | P3 | Os dois |
+| 2.10 | Trocar a conta de mesa e mover item entre pessoas: feito em 25/10. Falta trocar um item por outro (regra pendente do dono) | P3 | Os dois |
 | 2.11 | Troco no pagamento em dinheiro | P3 | Você decide |
 | 2.12 | Impressão ou exportação da conta | P3 | Você decide |
 
