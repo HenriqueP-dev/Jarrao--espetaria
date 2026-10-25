@@ -710,3 +710,15 @@ button.entregar:disabled { background: #b9b2a7; opacity: 1; }
 /* Caixa: histórico da conta */
 .historico-conta { margin-top: 14px; }
 .historico-conta summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
+
+/* Aviso de falta de internet (componentes/Conexao.js): fixo no topo, por cima de tudo. */
+.sem-conexao {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--vermelho);
+  color: #fff;
+  text-align: center;
+  font-weight: 600;
+  padding: 8px 16px;
+}

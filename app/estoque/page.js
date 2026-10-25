@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { useTrava } from '../componentes/useTrava';
+import { useTempoReal } from '../componentes/useTempoReal';
 import { useSessao } from '../componentes/Sessao';
 import {
   ROTULO_STATUS,
@@ -52,7 +54,7 @@ export default function Estoque() {
         : Promise.resolve({ data: [] }),
     ]);
     const falha = s.error || e.error || m.error || p.error;
-    if (falha) return setErro(falha.message);
+    if (falha) return setErro(mensagemDeErro(falha));
     setErro(null);
     setLinhas(s.data);
     setEmbalagens(e.data);
@@ -60,11 +62,13 @@ export default function Estoque() {
     setLivres(p.data);
   }, [dono]);
 
-  useEffect(() => {
-    if (perfil === 'caixa' || perfil === 'dono' || !loginObrigatorio) carregar();
-    const tempo = setInterval(carregar, 20000);
-    return () => clearInterval(tempo);
-  }, [perfil, loginObrigatorio, carregar]);
+  // Sem tempo real aqui (o estoque muda devagar): só a reserva, com a aba visível.
+  useTempoReal({
+    nome: 'estoque',
+    carregar,
+    intervalo: 30000,
+    ativo: perfil === 'caixa' || perfil === 'dono' || !loginObrigatorio,
+  });
 
   const visiveis = useMemo(
     () => ordenarPorUrgencia(filtrarLinhas(linhas, { busca, soAlertas })),
@@ -99,7 +103,7 @@ export default function Estoque() {
   function enviar(rpc, params, mensagem, manter = false) {
     return travar(async () => {
       const { error } = await supabase.rpc(rpc, params);
-      if (error) return setErro(error.message);
+      if (error) return setErro(mensagemDeErro(error));
       setErro(null);
       setAviso(mensagem);
       if (!manter) setAcao(null);
@@ -114,7 +118,7 @@ export default function Estoque() {
         const { error } = await supabase.rpc('definir_controle_estoque', { p_produto: p.id, p_controla: true, p_minimo: 0 });
         if (error) {
           setLoteConfirmar(null);
-          return setErro(error.message);
+          return setErro(mensagemDeErro(error));
         }
       }
       setLoteConfirmar(null);

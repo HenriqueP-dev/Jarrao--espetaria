@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { useTrava } from './useTrava';
+import { useTempoReal } from './useTempoReal';
 import { ROTULOS } from '../../lib/estados';
 import {
   COLUNAS,
@@ -34,26 +36,18 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
       .eq('setor', setor)
       .or('estado.in.(novo,em_preparo,pronto),and(estado.eq.cancelado,cancelamento_visto_em.is.null)')
       .order('criado_em');
-    if (error) return setErro(error.message);
+    if (error) return setErro(mensagemDeErro(error));
     setErro(null);
     setItens(data);
   }, [setor]);
 
+  // Tempo real + reserva de 20 s (só com a tela visível).
+  useTempoReal({ nome: `setor-${setor}`, tabelas: ['itens_pedido', 'contas'], carregar, intervalo: 20000 });
+
   useEffect(() => {
-    carregar();
-    const canal = supabase
-      .channel(`setor-${setor}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'itens_pedido' }, carregar)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contas' }, carregar)
-      .subscribe();
-    const tempo = setInterval(carregar, 15000); // reserva caso o tempo real falhe
     const relogio = setInterval(() => setAgora(Date.now()), 30000);
-    return () => {
-      clearInterval(tempo);
-      clearInterval(relogio);
-      supabase.removeChannel(canal);
-    };
-  }, [setor, carregar]);
+    return () => clearInterval(relogio);
+  }, []);
 
   // Cada ação roda uma vez por vez: toque duplo não repete a chamada.
   const { ocupado, travar } = useTrava();
@@ -61,7 +55,7 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
   function mudar(id, novo) {
     return travar(async () => {
       const { error } = await supabase.rpc('mudar_estado_item', { p_item: id, p_novo: novo });
-      if (error) setErro(error.message);
+      if (error) setErro(mensagemDeErro(error));
       else carregar();
     });
   }
@@ -72,7 +66,7 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
       const ids = itensParaAvancar(ficha.itens, destino).map((i) => i.id);
       if (!ids.length) return;
       const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: destino });
-      setErro(error ? error.message : null);
+      setErro(mensagemDeErro(error));
       carregar();
     });
   }
@@ -80,7 +74,7 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
   function darCiente(id) {
     return travar(async () => {
       const { error } = await supabase.rpc('confirmar_cancelamento', { p_item: id });
-      setErro(error ? error.message : null);
+      setErro(mensagemDeErro(error));
       carregar();
     });
   }

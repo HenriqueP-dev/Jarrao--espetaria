@@ -3,6 +3,7 @@ import { Bebas_Neue, Inter } from 'next/font/google';
 import SessaoProvider from './componentes/Sessao';
 import Cabecalho from './componentes/Cabecalho';
 import Guarda from './componentes/Guarda';
+import Conexao from './componentes/Conexao';
 
 // Títulos em letras condensadas (parecidas com as do logo) e texto em Inter.
 const titulo = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--fonte-titulo' });
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR">
       <body className={`${titulo.variable} ${corpo.variable}`}>
         <SessaoProvider>
+          <Conexao />
           <Cabecalho />
           <main>
             <Guarda>{children}</Guarda>

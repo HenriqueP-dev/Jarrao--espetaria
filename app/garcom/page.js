@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { lerMesaPessoa } from '../../lib/mesas';
 import { validarPedido, formatarReais } from '../../lib/conta';
 import { adicionarProduto, erroDasLinhas, itensParaEnvio } from '../../lib/pedido';
@@ -32,7 +33,7 @@ export default function Garcom() {
       .eq('ativo', true)
       .order('ordem')
       .then(({ data, error }) => {
-        if (error) setMsg({ tipo: 'erro', texto: error.message });
+        if (error) setMsg({ tipo: 'erro', texto: mensagemDeErro(error) });
         else setProdutos(data);
       });
   }, []);
@@ -100,7 +101,7 @@ export default function Garcom() {
         const rede = /fetch|network|failed/i.test(error.message);
         return setMsg({
           tipo: 'erro',
-          texto: rede ? 'Sem conexão. O pedido não foi confirmado: toque em Enviar de novo (não será duplicado).' : error.message,
+          texto: rede ? 'Sem conexão. O pedido não foi confirmado: toque em Enviar de novo (não será duplicado).' : mensagemDeErro(error),
         });
       }
       chaves.current.liberar();

@@ -68,6 +68,13 @@ describe('porteiro da tela', () => {
     expect(decidirAcesso({ ...base, usuario: logado, perfil: 'garcom' })).toBe('liberar');
   });
 
+  it('endereço que não existe mostra a página 404, com ou sem login', () => {
+    expect(decidirAcesso({ ...base, loginObrigatorio: true, caminho: '/nao-existe' })).toBe('liberar');
+    expect(decidirAcesso({ ...base, loginObrigatorio: true, usuario: logado, perfil: 'garcom', caminho: '/xyz' })).toBe('liberar');
+    // telas reais continuam protegidas
+    expect(decidirAcesso({ ...base, loginObrigatorio: true, caminho: '/caixa' })).toBe('entrar');
+  });
+
   it('enquanto lê a sessão, espera', () => {
     expect(decidirAcesso({ ...base, carregando: true, loginObrigatorio: true })).toBe('carregando');
   });

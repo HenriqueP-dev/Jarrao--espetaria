@@ -5,6 +5,7 @@ import {
   parseReais,
   motivoNaoFechar,
   validarPagamento,
+  erroMotivoEstorno,
 } from '../lib/caixa.js';
 
 const itens = [
@@ -19,6 +20,23 @@ describe('saldo da conta', () => {
   });
   it('desconta os pagamentos', () => {
     expect(saldo(itens, [{ valor_centavos: 2000 }])).toBe(3200);
+  });
+  it('não desconta pagamento estornado', () => {
+    const pags = [
+      { valor_centavos: 5200, estornado_em: '2026-10-25T20:00:00Z' },
+      { valor_centavos: 2000, estornado_em: null },
+    ];
+    expect(saldo(itens, pags)).toBe(3200);
+    expect(motivoNaoFechar(itens, [{ valor_centavos: 5200, estornado_em: '2026-10-25T20:00:00Z' }])).toMatch(/paga por completo/);
+  });
+});
+
+describe('motivo do estorno', () => {
+  it('exige de 3 a 200 letras', () => {
+    expect(erroMotivoEstorno('  ')).toMatch(/motivo/);
+    expect(erroMotivoEstorno('ab')).toMatch(/motivo/);
+    expect(erroMotivoEstorno('era débito')).toBeNull();
+    expect(erroMotivoEstorno('x'.repeat(201))).toMatch(/longo/);
   });
 });
 

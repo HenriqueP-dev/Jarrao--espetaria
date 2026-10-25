@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { useTrava } from '../componentes/useTrava';
 import { useSessao } from '../componentes/Sessao';
 import { formatarReais } from '../../lib/conta';
@@ -42,7 +43,7 @@ export default function Produtos() {
         .order('id', { ascending: false })
         .limit(40),
     ]);
-    if (p.error || h.error) return setErro((p.error || h.error).message);
+    if (p.error || h.error) return setErro(mensagemDeErro(p.error || h.error));
     setErro(null);
     setProdutos(p.data);
     setHistorico(h.data);
@@ -104,7 +105,7 @@ export default function Produtos() {
         p_exige_espeto: form.exige_espeto,
       });
       setConfirmando(false);
-      if (error) return setErro(error.message);
+      if (error) return setErro(mensagemDeErro(error));
       setErro(null);
       setAviso(original ? `${form.nome.trim()} atualizado.` : `${form.nome.trim()} criado.`);
       setEditando(null);

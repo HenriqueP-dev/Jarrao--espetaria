@@ -102,6 +102,8 @@ Somente leitura: nenhum código, dado ou configuração foi alterado. Baseada no
 - **Etapas 1–3 feitas em 25/10/2026** (migration 012, telas e testes): C1, C2 (parte do toque duplo e da repetição; estorno de pagamento ainda falta) e A3. Teste SQL `008_idempotencia_e_tetos.sql`; teste 007 ajustado (vendia 100 unidades, agora 99).
 - **Etapa 4 feita em 25/10/2026** (migrations 013 e 014): A1 resolvido. Achado extra: as tabelas de 010/011 tinham permissão de gravação direta para anon e logados (barrada só pela falta de regra RLS), e funções novas nasciam executáveis por todos (PUBLIC). Ambos corrigidos; teste 009. O relatório do Supabase não acusa mais funções abertas ao anônimo; os avisos restantes são esperados (funções chamáveis por logados, que conferem o perfil) e a proteção de senhas vazadas (recurso do plano pago).
 
+- **Etapas 5 a 10 feitas em 25/10/2026:** estorno de pagamento (015, teste SQL 010), páginas 404/erro e aviso de conexão (C4, C5), menos recargas e índices (B1, B2; migration 016), senha mais forte e mensagens de erro traduzidas (A2 em parte, A4), CI no GitHub (C6 em parte), cópia de segurança e restauração (C3 em parte). **Continua em aberto:** teste ponta a ponta no navegador com login (Playwright), monitoramento de erros (precisa de conta num serviço como o Sentry), 2FA do dono e proteção de senhas vazadas (plano pago), backup automático (plano Pro), paginação de históricos longos (B4), C7 (gatilho de estoque) e C8 (limpar dados de teste, com autorização).
+
 ## Plano de execução priorizado (etapas pequenas)
 | # | Etapa | Teste de validação |
 |---|---|---|

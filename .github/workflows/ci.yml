@@ -1,0 +1,27 @@
+# Verificação automática (auditoria, etapa 8): a cada envio ao GitHub, roda os testes das
+# regras e confere se o site compila. Se algo quebrar, o GitHub marca o commit com um X
+# vermelho e manda e-mail. Não publica nada e não usa nenhuma chave secreta.
+# (Os testes SQL de supabase/tests/ continuam sendo rodados à mão no banco.)
+name: Testes e build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

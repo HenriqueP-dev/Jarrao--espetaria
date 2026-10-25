@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { formatarReais } from '../../lib/conta';
 import { FORMAS_PAGAMENTO } from '../../lib/caixa';
+import { useTempoReal } from '../componentes/useTempoReal';
 import {
   PERIODOS,
   compactarReais,
@@ -36,25 +38,15 @@ export default function Vendas() {
     if (!faixaOk) return;
     const { data, error } = await supabase.rpc('relatorio_vendas', { p_de: inicio, p_ate: fim });
     setCarregando(false);
-    if (error) return setErro(error.message);
+    if (error) return setErro(mensagemDeErro(error));
     setErro(null);
     setDados(data);
   }, [inicio, fim, faixaOk]);
 
   useEffect(() => {
     setCarregando(true);
-    carregar();
-    const canal = supabase
-      .channel('vendas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contas' }, carregar)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pagamentos' }, carregar)
-      .subscribe();
-    const tempo = setInterval(carregar, 60000);
-    return () => {
-      clearInterval(tempo);
-      supabase.removeChannel(canal);
-    };
   }, [carregar]);
+  useTempoReal({ nome: 'vendas', tabelas: ['contas', 'pagamentos'], carregar, intervalo: 60000 });
 
   const serie = useMemo(
     () => (dados ? serieDoGrafico(dados.por_dia, dados.de, dados.ate) : null),

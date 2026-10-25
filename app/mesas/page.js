@@ -1,12 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { ROTULOS, itensEntregaveis } from '../../lib/estados';
 import { totalConta, formatarReais } from '../../lib/conta';
 import { agruparPorSetor } from '../../lib/setor';
 import { mesaValida } from '../../lib/mesas';
 import { useTrava } from '../componentes/useTrava';
+import { useTempoReal } from '../componentes/useTempoReal';
 
 export default function Mesas() {
   const [abertas, setAbertas] = useState({}); // mesa -> conta
@@ -22,7 +24,7 @@ export default function Mesas() {
 
   const carregar = useCallback(async () => {
     const { data, error } = await supabase.from('contas').select('*').eq('status', 'aberta');
-    if (error) return setErro(error.message);
+    if (error) return setErro(mensagemDeErro(error));
     const porMesa = {};
     data.forEach((c) => (porMesa[c.mesa_numero] = c));
 
@@ -36,26 +38,14 @@ export default function Mesas() {
         ? supabase.from('historico').select('*').eq('conta_id', conta.id).order('criado_em').order('id')
         : { data: [] },
     ]);
-    if (it.error || hi.error) return setErro((it.error || hi.error).message);
+    if (it.error || hi.error) return setErro(mensagemDeErro(it.error || hi.error));
     setErro(null);
     setAbertas(porMesa);
     setTodosItens(it.data);
     setHistorico(hi.data);
   }, [mesa]);
 
-  useEffect(() => {
-    carregar();
-    const canal = supabase
-      .channel('mesas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'itens_pedido' }, carregar)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contas' }, carregar)
-      .subscribe();
-    const tempo = setInterval(carregar, 15000);
-    return () => {
-      clearInterval(tempo);
-      supabase.removeChannel(canal);
-    };
-  }, [carregar]);
+  useTempoReal({ nome: 'mesas', tabelas: ['itens_pedido', 'contas'], carregar });
 
   function escolherMesa(n) {
     setMesa(n);
@@ -67,7 +57,7 @@ export default function Mesas() {
   function mudar(id, novo) {
     return travar(async () => {
       const { error } = await supabase.rpc('mudar_estado_item', { p_item: id, p_novo: novo });
-      if (error) setErro(error.message);
+      if (error) setErro(mensagemDeErro(error));
       else carregar();
     });
   }
@@ -107,7 +97,7 @@ export default function Mesas() {
       const ids = itensEntregaveis(grupo.itens).map((i) => i.id);
       if (!ids.length) return;
       const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: 'entregue' });
-      setErro(error ? error.message : null);
+      setErro(mensagemDeErro(error));
       carregar();
     });
   }
@@ -120,7 +110,7 @@ export default function Mesas() {
     return travar(async () => {
       const { error } = await supabase.rpc('trocar_mesa', { p_conta: conta.id, p_mesa: mesaNova });
       if (error) {
-        setErro(error.message);
+        setErro(mensagemDeErro(error));
         setTroca({ ...troca, confirmando: false });
         return;
       }
@@ -144,7 +134,7 @@ export default function Mesas() {
         p_pessoa: pessoaNova,
       });
       if (error) {
-        setErro(error.message);
+        setErro(mensagemDeErro(error));
         setMover({ ...mover, confirmando: false });
         return;
       }

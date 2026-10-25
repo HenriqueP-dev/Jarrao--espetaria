@@ -50,7 +50,7 @@ export default function Senha() {
       {erro && <div className="erro" role="alert">{erro}</div>}
       <form onSubmit={trocar} className="form-entrar">
         <label>
-          <span className="rotulo-campo">Nova senha (pelo menos {SENHA_MINIMA} caracteres)</span>
+          <span className="rotulo-campo">Nova senha (pelo menos {SENHA_MINIMA} caracteres, com letras e números)</span>
           <input
             type="password"
             value={nova}

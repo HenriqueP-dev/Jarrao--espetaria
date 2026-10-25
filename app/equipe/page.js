@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import { mensagemDeErro } from '../../lib/erros';
 import { useSessao } from '../componentes/Sessao';
 import { PERFIS } from '../../lib/permissoes';
+import { TABELAS_DA_COPIA, chaveDaTabela, lerTudo, montarCopia, nomeDoArquivo } from '../../lib/copia';
+import { useTrava } from '../componentes/useTrava';
 
 // Só o dono: dar perfil a quem já tem acesso e desativar pessoas.
 // O banco confere tudo de novo (funções equipe e definir_perfil). O login é sempre exigido
@@ -16,10 +19,36 @@ export default function Equipe() {
   const [edicao, setEdicao] = useState({}); // user_id -> { nome, perfil, ativo }
   const [erro, setErro] = useState(null);
   const [aviso, setAviso] = useState(null);
+  const { ocupado: gerandoCopia, travar } = useTrava();
+
+  // Cópia de segurança: lê todas as tabelas (em lotes) e baixa um arquivo .json.
+  function baixarCopia() {
+    return travar(async () => {
+      try {
+        const tabelas = {};
+        for (const t of TABELAS_DA_COPIA) {
+          tabelas[t] = await lerTudo((de, ate) =>
+            supabase.from(t).select('*').order(chaveDaTabela(t)).range(de, ate)
+          );
+        }
+        const agora = new Date();
+        const arquivo = new Blob([JSON.stringify(montarCopia(tabelas, agora), null, 1)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(arquivo);
+        link.download = nomeDoArquivo(agora);
+        link.click();
+        URL.revokeObjectURL(link.href);
+        setErro(null);
+        setAviso(`Cópia baixada (${link.download}). Guarde em outro lugar além deste aparelho.`);
+      } catch (e) {
+        setErro(mensagemDeErro(e));
+      }
+    });
+  }
 
   const carregar = useCallback(async () => {
     const [eq, nv] = await Promise.all([supabase.rpc('equipe'), supabase.rpc('usuarios_sem_perfil')]);
-    if (eq.error || nv.error) return setErro((eq.error || nv.error).message);
+    if (eq.error || nv.error) return setErro(mensagemDeErro(eq.error || nv.error));
     setErro(null);
     setEquipe(eq.data);
     setNovos(nv.data);
@@ -51,7 +80,7 @@ export default function Equipe() {
       p_perfil: dados.perfil,
       p_ativo: dados.ativo,
     });
-    if (error) return setErro(error.message);
+    if (error) return setErro(mensagemDeErro(error));
     setErro(null);
     setAviso(mensagem);
     setEdicao((e) => {
@@ -139,6 +168,17 @@ export default function Equipe() {
             </div>
           );
         })}
+      </section>
+
+      <section className="card">
+        <h2>Cópia de segurança</h2>
+        <p className="mudo">
+          Baixa um arquivo com todos os pedidos, contas, pagamentos, estoque e histórico. Faça ao fim de cada
+          semana e guarde fora deste aparelho (e-mail, Google Drive, pendrive). As senhas não vão no arquivo.
+        </p>
+        <button onClick={baixarCopia} disabled={gerandoCopia}>
+          {gerandoCopia ? 'Gerando…' : 'Baixar cópia de segurança'}
+        </button>
       </section>
 
       <section className="card">
