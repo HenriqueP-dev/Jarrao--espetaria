@@ -23,7 +23,7 @@ Referências: [CONTEXTO_DO_PROJETO.md](CONTEXTO_DO_PROJETO.md) (como o restauran
 - Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel na publicação futura.
 - Estado controlado por item.
 - Sem login no protótipo, só com dados fictícios. **Login é obrigatório antes de qualquer uso real.** Segurança fica para depois do protótipo, por decisão do desenvolvedor.
-- Migrations SQL numeradas em `supabase/migrations/` (001 a 004 aplicadas e validadas à mão; a 005, de mesa livre, foi escrita em 23/10 e aplicada em 25/10, conferida por consulta de leitura; a 006, de cancelamento visível, lote atômico, troca de mesa e mover item, foi aplicada em 25/10 pela ferramenta de migrations do Supabase e testada; a 007, do relatório de vendas, também).
+- Migrations SQL numeradas em `supabase/migrations/` (001 a 004 aplicadas e validadas à mão; a 005, de mesa livre, foi escrita em 23/10 e aplicada em 25/10, conferida por consulta de leitura; a 006, de cancelamento visível, lote atômico, troca de mesa e mover item, foi aplicada em 25/10 pela ferramenta de migrations do Supabase e testada; a 007, do relatório de vendas, também; a 008, de login e permissões, foi aplicada em 25/10 **em modo de transição, com a trava desligada**).
 - Não publicar, contratar serviços, gastar dinheiro nem fazer commit sem autorização do desenvolvedor.
 
 ## 2. Estado do protótipo
@@ -35,6 +35,8 @@ Em 23/10 as telas foram refeitas (Kanban nos setores, nova tela do garçom, Mesa
 Em 25/10, com a migration 006 aplicada, o Claude Code testou **no navegador e no banco** (53 testes em JavaScript, mais os testes SQL de `supabase/tests/`, todos passando): cancelar um item faz o aviso vermelho aparecer sozinho na tela do setor (churrasqueira e cozinha, inclusive para item cancelado já pronto); "Ciente" tira o aviso e grava `cancelamento_visto` no histórico; "Iniciar preparo" e "Pronto" agem em lote; trocar a conta de mesa e mover um item para outra pessoa funcionam com confirmação; o caixa mostra o histórico da conta; a conta de teste foi fechada pelo caixa com total zero. Esse teste deixou no banco as mesas 997 e 998 cadastradas e uma conta de teste fechada (mesa 997, sem valor, sem pagamento): ignorar em relatórios futuros. Não testado pela tela: o botão "Entregue" em lote de `/mesas` (a função do banco foi testada), a recusa de troca para mesa com conta aberta pela tela (testada no banco) e o uso em celular real.
 
 Depois, a tela `/vendas` (relatório) foi conferida no navegador com os dados reais, em computador e em celular simulado: os totais (R$ 2.136,00 vendidos e recebidos, 26 contas pagas, 2 cancelamentos) batem com uma conta feita direto nas tabelas, a dica ao passar o mouse funciona, o menu de seis itens cabe no celular, e o teste SQL `003_relatorio_vendas.sql` passou.
+
+Depois, o **login e as permissões** (migration 008) foram testados, **ainda com a trava desligada**: os testes SQL 001 a 003 continuaram passando sem alteração (o sistema aberto não mudou), o novo `004_login_permissoes.sql` simula cada perfil com a trava ligada dentro de uma transação desfeita (sem login, sem perfil, desativado, garçom, churrasqueira, cozinha, caixa, dono, autor no histórico, último dono protegido e desligar a trava) e passou inteiro, e 82 testes em JavaScript cobrem as regras de tela (porteiro, menu, mensagens). No navegador, em modo aberto: menu, tela inicial, entrar, equipe, garçom, caixa e vendas funcionam, a tela de entrar cabe no celular. Consultas de leitura com a chave pública mostraram que gravar direto nas tabelas e ligar a trava sem estar logado são negados. **Não testado:** o login de verdade (ainda não existe nenhuma conta de acesso; senhas são digitadas só por você) e as telas com a trava ligada (a lógica delas foi testada por funções puras, mas ligar a trava agora trancaria o sistema).
 
 ## Identidade visual
 
@@ -91,7 +93,14 @@ Depois, a tela `/vendas` (relatório) foi conferida no navegador com os dados re
 - [Pendente] **Troca de um item por outro** (A5) não foi feita: o exemplo do desenvolvedor é com o pedido já entregue na mesa, e hoje item entregue não pode ser cancelado. Precisa de decisão do dono sobre o destino do item entregue (perda, cobrança, estoque).
 - [Pendente] **Cadastro de produtos por tela** adiado de propósito: sem login, qualquer pessoa com o endereço poderia mudar preços.
 - [Código] (migration 007, tela `/vendas`) **Primeira versão do relatório de vendas, hipóteses a confirmar com o dono:** "vendido" = itens não cancelados das contas **fechadas pelo caixa** no período; o dia de uma venda é o **dia do fechamento da conta**, no horário de Brasília (um expediente que passa da meia-noite é dividido em dois dias); "recebido" = pagamentos registrados no período, por forma; cancelamentos = itens cancelados no período, de qualquer conta; ticket médio = vendido ÷ contas pagas (contas de total zero não contam). Períodos: hoje, ontem, 7 dias, 30 dias, este mês, este ano ou datas escolhidas; acima de 62 dias o gráfico agrupa por mês. Mostra total, ticket médio, recebido, cancelados, gráfico por dia, 10 mais vendidos (por quantidade), formas de pagamento e versões em tabela. Contas abertas não entram. Não inclui lucro (faltam os custos), por garçom, por setor, nem exportação.
-- [Pendente] O relatório de vendas, como o resto, está **sem login**: qualquer pessoa com o endereço vê os números. Restringir aos donos na etapa de login (F3).
+- [Pendente] O relatório de vendas, como o resto, está **sem login**: qualquer pessoa com o endereço vê os números. Restringir aos donos na etapa de login (F3). [Código] Resolvido na 008 para quando a trava estiver ligada: só caixa e dono veem o relatório e os pagamentos.
+- [Código] (migration 008, tela `/entrar`, `/equipe`) **Login e permissões em modo de transição, hipóteses de permissão a confirmar com o dono:**
+  - **Trava desligada (como está hoje):** nada muda para a equipe. Quem já estiver logado tem o nome gravado no histórico. **Trava ligada:** só entra quem tem login e perfil ativo, e cada função do banco confere o perfil de quem chama (não só a tela). Ligar e desligar é reversível, em `/equipe` (só o dono) ou por um UPDATE em `configuracao`.
+  - **Matriz:** garçom lança pedido, entrega, troca mesa e move item; cozinha e churrasqueira preparam e dão "Ciente" só nos itens do próprio setor; caixa faz tudo do atendimento e também cancela, recebe, fecha conta e vê vendas e pagamentos; dono faz tudo e gerencia a equipe e a trava. **Cancelar item é só do caixa e do dono** (a dona cancela). Garçom e setores não leem pagamentos nem o relatório.
+  - **Perfis ficam numa tabela do banco** (`perfis`), não em dados editáveis pelo próprio usuário (nada de `user_metadata`), então desativar alguém vale na hora. O sistema nunca fica sem dono ativo.
+  - **Como ligar com segurança (passo a passo):** (1) o dono cria o próprio acesso em Supabase → Authentication → Users → Add user; (2) o Claude Code dá o perfil de dono a esse usuário (precisa do e-mail e do nome); (3) desativar o cadastro livre de novos usuários em Supabase → Authentication (para estranhos não criarem contas); (4) o dono entra em `/entrar`, cria os acessos da equipe no painel do Supabase e define o perfil de cada um em `/equipe`; (5) cada pessoa testa o próprio login; (6) com aprovação do dono, ligar a trava em `/equipe`. Para voltar atrás: "Voltar ao modo aberto" em `/equipe`.
+  - [Pendente] **Troca da senha do banco** (foi colada numa conversa), recuperação de senha por e-mail, e registrar no histórico quem mudou perfis. [Pendente] Garçom registrar pagamento de conta fechada na mesa (B5) não é permitido hoje: só caixa e dono.
+  - O relatório de segurança do Supabase continua avisando que as funções de gravação são chamáveis pela API (anon e usuários logados): é esperado, cada uma confere o perfil por dentro (testado).
 
 ---
 
@@ -187,13 +196,13 @@ Depois, a tela `/vendas` (relatório) foi conferida no navegador com os dados re
 
 | Tema | Protótipo hoje | O que foi pedido |
 |---|---|---|
-| Cancelamento | Qualquer pessoa em `/mesas` cancela | Só a dona (exige login e permissões) |
+| Cancelamento | Com a trava desligada (hoje) qualquer pessoa cancela; com a trava ligada (008) só caixa e dono | Só a dona (exige login e permissões) |
 | Cardápio | Resolvido na migration 004 (aplicada): 133 produtos reais ativos, sem os itens sem preço | Cardápio real (apenas itens com preço informado) |
 | Produtos | Resolvido na migration 004 (aplicada): categorias, observação, escolha do espeto e setor garçom | Meia/inteira, sabores, adicionais e escolha do espeto na jantinha |
 | Aviso no setor | Resolvido (migration 006): quadro vermelho com botão "Ciente" na tela do setor | Cancelamento visível ao setor |
 | Telas dos setores | Resolvido: Kanban com as três colunas lado a lado (Novos, Em preparo, Prontos); no celular as colunas rolam para o lado | Quadro em colunas (Novos, Em preparo, Prontos) |
 | Troca de mesa, troca de item, mover item entre pessoas | Troca de mesa e mover item: resolvidos (006), com confirmação e histórico. Troca de item: não existe | Com confirmação e histórico |
-| Quem entregou | Não é registrado (sem login) | Registrar quem marcou Entregue |
+| Quem entregou | Pronto na 008: quem está logado fica gravado em todo evento do histórico; sem login, não | Registrar quem marcou Entregue |
 | Pix | Fora das formas de pagamento | Provavelmente entra, só como registro manual depois da conferência; confirmar com a dona |
 | Fiado | Não existe | Existe na operação; regras pendentes |
 | Estoque e relatórios | Relatório de vendas: primeira versão em `/vendas` (007). Estoque: não existe | Bebidas e espetos primeiro; relatórios por período |

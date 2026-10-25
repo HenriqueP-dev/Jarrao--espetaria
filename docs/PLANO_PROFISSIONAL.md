@@ -81,14 +81,16 @@ Cada pergunta bloqueia o item indicado.
 
 Hoje as tabelas permitem leitura por qualquer pessoa com a chave pública, e as gravações passam por funções que também são públicas. Isso é aceitável só com dados fictícios.
 
-1. **Login por usuário** (Supabase Auth). **[Eu]** com decisões suas: quem entra com e-mail e senha, quem tem PIN no tablet compartilhado.
+> **Estado em 25/10:** login, perfis, permissões no banco, regras de leitura por perfil e autor no histórico estão **prontos e testados, em modo de transição**: a trava (`configuracao.exigir_login`) está **desligada**, então o sistema continua aberto como antes. Faltam: criar os acessos, ligar a trava com a aprovação do dono, desativar o cadastro livre de usuários no Supabase e trocar a senha do banco. Passo a passo em [DECISOES.md](DECISOES.md), seção 3.
+
+1. **Login por usuário** (Supabase Auth). **Feito (modo de transição).** Falta: recuperação de senha por e-mail e PIN no tablet compartilhado, se o dono quiser.
 2. **Papéis**: garçom, cozinha, churrasqueira, caixa, dono/administrador. **[Os dois]**
    - Garçom: criar pedido, ver mesas, marcar entregue.
    - Cozinha e churrasqueira: ver só o seu setor, marcar em preparo e pronto.
    - Caixa: registrar pagamento e fechar conta.
    - Administrador: cadastros, relatórios, cancelamentos com autorização.
-3. **Regras de acesso no banco (RLS por papel)**, em vez de leitura livre. **[Eu]**
-4. **Quem fez o quê**: gravar o usuário em cada evento do histórico. **[Eu]**
+3. **Regras de acesso no banco (RLS por papel)**, em vez de leitura livre. **Feito (liga com a trava).**
+4. **Quem fez o quê**: gravar o usuário em cada evento do histórico. **Feito** (grava quando a pessoa está logada). Falta registrar também as mudanças de perfil da equipe.
 5. **Segredos**: a chave `service_role` e a senha do banco nunca vão para o código nem para o GitHub. O `.env.local` já está no `.gitignore`. **[Você]** guarda a senha do banco em um gerenciador de senhas.
 6. **Proteção contra abuso**: limitar tentativas de login e revisar permissões das funções. **[Eu]**
 7. **Dados pessoais** (nomes de clientes na separação de contas): conferir com um contador ou advogado se há exigência de LGPD para o seu caso. **[Você]**

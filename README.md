@@ -18,7 +18,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 ## Como rodar
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql` e `supabase/migrations/007_relatorio_vendas.sql`.
+2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql`, `supabase/migrations/007_relatorio_vendas.sql` e `supabase/migrations/008_login_permissoes.sql`.
 3. Copie `.env.example` para `.env.local` e preencha a URL e a chave `anon` (Project Settings → API).
 4. Instale e rode:
    ```
@@ -39,6 +39,9 @@ Testes das funções do banco: arquivos em `supabase/tests/`. Cada um roda no SQ
 - `/caixa` — contas abertas, extrato, pagamentos (dinheiro, débito, crédito), saldo, histórico da conta e fechamento.
 - `/vendas` — relatório: total vendido, ticket médio, recebido, cancelados, gráfico por dia, mais vendidos e formas de pagamento, por período.
 - Nas telas da cozinha e da churrasqueira, item cancelado aparece num quadro vermelho até alguém tocar em "Ciente".
+
+## Login e permissões
+Já existe (migration 008), mas **a trava está desligada**: o sistema continua aberto como no protótipo. Com a trava ligada, só entra quem tem login e perfil ativo (garçom, cozinha, churrasqueira, caixa ou dono), e o banco confere o perfil em cada ação. O dono liga e desliga a trava e define os perfis na tela `/equipe`; as telas `/entrar` e `/equipe` já estão no menu. O passo a passo para ligar com segurança está em [docs/DECISOES.md](docs/DECISOES.md), seção 3 ("Login e permissões").
 
 ## Rumo ao uso real
 Veja [docs/PLANO_PROFISSIONAL.md](docs/PLANO_PROFISSIONAL.md).

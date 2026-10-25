@@ -1,4 +1,8 @@
+'use client';
+
 import Link from 'next/link';
+import { useSessao } from './componentes/Sessao';
+import { podeAcessar } from '../lib/permissoes';
 
 const ATALHOS = [
   ['/garcom', 'Garçom', 'Escolher a mesa e lançar o pedido.'],
@@ -7,15 +11,23 @@ const ATALHOS = [
   ['/mesas', 'Mesas', 'Contas abertas, entrega e histórico.'],
   ['/caixa', 'Caixa', 'Conferir a conta, receber e fechar.'],
   ['/vendas', 'Vendas', 'Quanto vendeu, o que mais saiu e como foi pago.'],
+  ['/equipe', 'Equipe', 'Quem tem acesso e o que cada um pode fazer.'],
 ];
 
 export default function Inicio() {
+  const { loginObrigatorio, perfil } = useSessao();
+  // Sem a trava, o protótipo continua aberto (menos "Equipe", que é só do dono).
+  const atalhos = ATALHOS.filter(([href]) =>
+    loginObrigatorio ? podeAcessar(perfil, href) : href !== '/equipe' || perfil === 'dono'
+  );
   return (
     <>
       <h1>Bem-vindo ao Jarrão</h1>
-      <p className="mudo">Protótipo com dados fictícios. Escolha uma tela:</p>
+      <p className="mudo">
+        {loginObrigatorio ? 'Escolha uma tela:' : 'Protótipo com dados fictícios. Escolha uma tela:'}
+      </p>
       <div className="atalhos">
-        {ATALHOS.map(([href, nome, descricao]) => (
+        {atalhos.map(([href, nome, descricao]) => (
           <Link key={href} href={href} className="atalho">
             <strong>{nome}</strong>
             <span className="mudo">{descricao}</span>

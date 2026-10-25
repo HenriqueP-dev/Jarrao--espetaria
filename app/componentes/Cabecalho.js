@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useSessao } from './Sessao';
+import { PERFIS, linksDoMenu } from '../../lib/permissoes';
 
 const LINKS = [
   ['/garcom', 'Garçom'],
@@ -11,11 +13,18 @@ const LINKS = [
   ['/mesas', 'Mesas'],
   ['/caixa', 'Caixa'],
   ['/vendas', 'Vendas'],
+  ['/equipe', 'Equipe'],
 ];
 
-// Cabeçalho fixo com o logo e o menu. A aba da página atual fica em amarelo.
+// Cabeçalho fixo com o logo, o menu e quem está logado. A aba da página atual fica em amarelo.
+// Com a trava do login desligada, o menu mostra tudo (como no protótipo); com ela ligada,
+// mostra só as telas do perfil. "Equipe" aparece só para o dono.
 export default function Cabecalho() {
   const caminho = usePathname();
+  const { carregando, loginObrigatorio, usuario, perfil, nome, sair } = useSessao();
+
+  const links = linksDoMenu(LINKS, { carregando, loginObrigatorio, perfil });
+
   return (
     <header className="topo">
       <div className="topo-conteudo">
@@ -30,7 +39,7 @@ export default function Cabecalho() {
           />
         </Link>
         <nav className="menu" aria-label="Telas do sistema">
-          {LINKS.map(([href, rotulo]) => (
+          {links.map(([href, rotulo]) => (
             <Link
               key={href}
               href={href}
@@ -41,6 +50,18 @@ export default function Cabecalho() {
             </Link>
           ))}
         </nav>
+        {!carregando && usuario && (
+          <div className="usuario">
+            <span>
+              <b>{nome ?? usuario.email}</b>
+              {perfil && <small>{PERFIS[perfil]}</small>}
+            </span>
+            <button className="sec" onClick={sair}>Sair</button>
+          </div>
+        )}
+        {!carregando && !usuario && !loginObrigatorio && caminho !== '/entrar' && (
+          <Link href="/entrar" className="entrar-link">Entrar</Link>
+        )}
       </div>
     </header>
   );
