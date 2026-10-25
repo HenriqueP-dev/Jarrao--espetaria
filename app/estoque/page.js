@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import { useTrava } from '../componentes/useTrava';
 import { useSessao } from '../componentes/Sessao';
 import {
   ROTULO_STATUS,
@@ -34,6 +35,7 @@ export default function Estoque() {
   const [loteConfirmar, setLoteConfirmar] = useState(null);
   const [erro, setErro] = useState(null);
   const [aviso, setAviso] = useState(null);
+  const { ocupado, travar } = useTrava();
 
   const carregar = useCallback(async () => {
     const [s, e, m, p] = await Promise.all([
@@ -93,28 +95,33 @@ export default function Estoque() {
   };
   const campo = (campos) => setAcao((a) => ({ ...a, ...campos }));
 
-  async function enviar(rpc, params, mensagem, manter = false) {
-    const { error } = await supabase.rpc(rpc, params);
-    if (error) return setErro(error.message);
-    setErro(null);
-    setAviso(mensagem);
-    if (!manter) setAcao(null);
-    carregar();
+  // Uma ação por vez: toque duplo em "Registrar entrada" não lança duas vezes.
+  function enviar(rpc, params, mensagem, manter = false) {
+    return travar(async () => {
+      const { error } = await supabase.rpc(rpc, params);
+      if (error) return setErro(error.message);
+      setErro(null);
+      setAviso(mensagem);
+      if (!manter) setAcao(null);
+      carregar();
+    });
   }
 
-  async function controlarLote(categoria) {
-    const alvos = livres.filter((p) => p.categoria === categoria);
-    for (const p of alvos) {
-      const { error } = await supabase.rpc('definir_controle_estoque', { p_produto: p.id, p_controla: true, p_minimo: 0 });
-      if (error) {
-        setLoteConfirmar(null);
-        return setErro(error.message);
+  function controlarLote(categoria) {
+    return travar(async () => {
+      const alvos = livres.filter((p) => p.categoria === categoria);
+      for (const p of alvos) {
+        const { error } = await supabase.rpc('definir_controle_estoque', { p_produto: p.id, p_controla: true, p_minimo: 0 });
+        if (error) {
+          setLoteConfirmar(null);
+          return setErro(error.message);
+        }
       }
-    }
-    setLoteConfirmar(null);
-    setErro(null);
-    setAviso(`${alvos.length} produto(s) de ${categoria} agora têm estoque controlado.`);
-    carregar();
+      setLoteConfirmar(null);
+      setErro(null);
+      setAviso(`${alvos.length} produto(s) de ${categoria} agora têm estoque controlado.`);
+      carregar();
+    });
   }
 
   function formulario(l) {
@@ -156,7 +163,7 @@ export default function Estoque() {
           )}
           <div className="linha">
             <button
-              disabled={q === null}
+              disabled={q === null || ocupado}
               onClick={() =>
                 enviar(
                   'registrar_entrada_estoque',
@@ -200,7 +207,7 @@ export default function Estoque() {
           <div className="linha">
             <button
               className="perigo"
-              disabled={q === null}
+              disabled={q === null || ocupado}
               onClick={() =>
                 enviar(
                   'registrar_saida_estoque',
@@ -246,7 +253,7 @@ export default function Estoque() {
           )}
           <div className="linha">
             <button
-              disabled={c === null}
+              disabled={c === null || ocupado}
               onClick={() =>
                 enviar(
                   'registrar_contagem_estoque',

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
+import { useTrava } from './useTrava';
 import { ROTULOS } from '../../lib/estados';
 import {
   COLUNAS,
@@ -54,25 +55,34 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
     };
   }, [setor, carregar]);
 
-  async function mudar(id, novo) {
-    const { error } = await supabase.rpc('mudar_estado_item', { p_item: id, p_novo: novo });
-    if (error) setErro(error.message);
-    else carregar();
+  // Cada ação roda uma vez por vez: toque duplo não repete a chamada.
+  const { ocupado, travar } = useTrava();
+
+  function mudar(id, novo) {
+    return travar(async () => {
+      const { error } = await supabase.rpc('mudar_estado_item', { p_item: id, p_novo: novo });
+      if (error) setErro(error.message);
+      else carregar();
+    });
   }
 
   // Muda todos os itens da ficha que ainda podem mudar, tudo ou nada (uma só chamada).
-  async function avancarFicha(ficha, destino) {
-    const ids = itensParaAvancar(ficha.itens, destino).map((i) => i.id);
-    if (!ids.length) return;
-    const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: destino });
-    setErro(error ? error.message : null);
-    carregar();
+  function avancarFicha(ficha, destino) {
+    return travar(async () => {
+      const ids = itensParaAvancar(ficha.itens, destino).map((i) => i.id);
+      if (!ids.length) return;
+      const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: destino });
+      setErro(error ? error.message : null);
+      carregar();
+    });
   }
 
-  async function darCiente(id) {
-    const { error } = await supabase.rpc('confirmar_cancelamento', { p_item: id });
-    setErro(error ? error.message : null);
-    carregar();
+  function darCiente(id) {
+    return travar(async () => {
+      const { error } = await supabase.rpc('confirmar_cancelamento', { p_item: id });
+      setErro(error ? error.message : null);
+      carregar();
+    });
   }
 
   const { ativos, cancelados } = useMemo(() => separarCancelados(itens), [itens]);
@@ -100,7 +110,7 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
                 {i.detalhe && <span> ({i.detalhe})</span>}
                 {i.pessoa && <span className="mudo"> · {i.pessoa}</span>}
               </div>
-              <button className="perigo" onClick={() => darCiente(i.id)}>Ciente</button>
+              <button className="perigo" onClick={() => darCiente(i.id)} disabled={ocupado}>Ciente</button>
             </div>
           ))}
         </section>
@@ -168,10 +178,10 @@ export default function TelaSetor({ setor, titulo, unidade = 'itens' }) {
                     {/* Um único botão grande, que muda conforme a fase. O estado continua sendo de cada item. */}
                     <div className="ticket-acoes">
                       {fase === 'novo' && (
-                        <button onClick={() => avancarFicha(t, 'em_preparo')}>Iniciar preparo</button>
+                        <button onClick={() => avancarFicha(t, 'em_preparo')} disabled={ocupado}>Iniciar preparo</button>
                       )}
                       {fase === 'em_preparo' && (
-                        <button onClick={() => avancarFicha(t, 'pronto')}>Pronto ✓</button>
+                        <button onClick={() => avancarFicha(t, 'pronto')} disabled={ocupado}>Pronto ✓</button>
                       )}
                       {fase === 'pronto' && <span className="mudo">Pronto. Aguardando o garçom retirar.</span>}
                     </div>

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import { useTrava } from '../componentes/useTrava';
 import { useSessao } from '../componentes/Sessao';
 import { formatarReais } from '../../lib/conta';
 import {
@@ -29,6 +30,7 @@ export default function Produtos() {
   const [confirmando, setConfirmando] = useState(false);
   const [erro, setErro] = useState(null);
   const [aviso, setAviso] = useState(null);
+  const { ocupado, travar } = useTrava();
 
   const carregar = useCallback(async () => {
     const [p, h] = await Promise.all([
@@ -89,23 +91,25 @@ export default function Produtos() {
     });
   }
 
-  async function salvar() {
-    if (validacao.erro) return setErro(validacao.erro);
-    const { error } = await supabase.rpc('salvar_produto', {
-      p_id: original ? original.id : null,
-      p_nome: form.nome.trim(),
-      p_preco_centavos: validacao.precoCentavos,
-      p_setor: form.setor,
-      p_categoria: form.categoria.trim(),
-      p_ativo: form.ativo,
-      p_exige_espeto: form.exige_espeto,
+  function salvar() {
+    return travar(async () => {
+      if (validacao.erro) return setErro(validacao.erro);
+      const { error } = await supabase.rpc('salvar_produto', {
+        p_id: original ? original.id : null,
+        p_nome: form.nome.trim(),
+        p_preco_centavos: validacao.precoCentavos,
+        p_setor: form.setor,
+        p_categoria: form.categoria.trim(),
+        p_ativo: form.ativo,
+        p_exige_espeto: form.exige_espeto,
+      });
+      setConfirmando(false);
+      if (error) return setErro(error.message);
+      setErro(null);
+      setAviso(original ? `${form.nome.trim()} atualizado.` : `${form.nome.trim()} criado.`);
+      setEditando(null);
+      carregar();
     });
-    setConfirmando(false);
-    if (error) return setErro(error.message);
-    setErro(null);
-    setAviso(original ? `${form.nome.trim()} atualizado.` : `${form.nome.trim()} criado.`);
-    setEditando(null);
-    carregar();
   }
 
   // Mudar o preço pede uma confirmação; o resto salva direto.
@@ -164,7 +168,7 @@ export default function Produtos() {
       </div>
       {!confirmando ? (
         <div className="linha">
-          <button onClick={pedirSalvar} disabled={Boolean(validacao.erro)}>Salvar</button>
+          <button onClick={pedirSalvar} disabled={Boolean(validacao.erro) || ocupado}>Salvar</button>
           <button className="sec" onClick={() => setEditando(null)}>Cancelar</button>
           {validacao.erro && <span className="texto-erro">{validacao.erro}</span>}
         </div>
@@ -175,7 +179,7 @@ export default function Produtos() {
             {formatarReais(validacao.precoCentavos)}. Pedidos que já foram lançados não mudam.
           </p>
           <div className="linha">
-            <button onClick={salvar}>Sim, mudar o preço</button>
+            <button onClick={salvar} disabled={ocupado}>Sim, mudar o preço</button>
             <button className="sec" onClick={() => setConfirmando(false)}>Voltar</button>
           </div>
         </>

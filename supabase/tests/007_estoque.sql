@@ -156,10 +156,10 @@ begin
   -- o estoque nunca bloqueia a venda: pode ficar negativo -----------------------------------------------------------------
   perform set_config('request.jwt.claims', json_build_object('sub', u_garcom, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
-  perform criar_pedido(922, jsonb_build_array(jsonb_build_object('produto_id', p_skol, 'quantidade', 100)));
+  perform criar_pedido(922, jsonb_build_array(jsonb_build_object('produto_id', p_skol, 'quantidade', 99))); -- 99 é o teto (migration 012)
   execute 'reset role';
   select coalesce(sum(quantidade), 0) into v_saldo from estoque_movimentos where produto_id = p_skol;
-  assert v_saldo = -60, 'vender além do estoque deixa o saldo negativo, sem bloquear';
+  assert v_saldo = -59, 'vender além do estoque deixa o saldo negativo, sem bloquear';
 
   -- trava desligada: sem login só o que é "do dia a dia"; configurar continua só com o dono -----------------------
   update configuracao set exigir_login = false;

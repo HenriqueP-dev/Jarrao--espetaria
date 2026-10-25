@@ -6,6 +6,7 @@ import { ROTULOS, itensEntregaveis } from '../../lib/estados';
 import { totalConta, formatarReais } from '../../lib/conta';
 import { agruparPorSetor } from '../../lib/setor';
 import { mesaValida } from '../../lib/mesas';
+import { useTrava } from '../componentes/useTrava';
 
 export default function Mesas() {
   const [abertas, setAbertas] = useState({}); // mesa -> conta
@@ -17,6 +18,7 @@ export default function Mesas() {
   // Troca de mesa e mover item: sempre em dois passos (preencher, depois confirmar).
   const [troca, setTroca] = useState(null); // { valor, confirmando }
   const [mover, setMover] = useState(null); // { id, valor, confirmando }
+  const { ocupado, travar } = useTrava(); // evita o mesmo toque rodar duas vezes
 
   const carregar = useCallback(async () => {
     const { data, error } = await supabase.from('contas').select('*').eq('status', 'aberta');
@@ -62,10 +64,12 @@ export default function Mesas() {
     setAviso(null);
   }
 
-  async function mudar(id, novo) {
-    const { error } = await supabase.rpc('mudar_estado_item', { p_item: id, p_novo: novo });
-    if (error) setErro(error.message);
-    else carregar();
+  function mudar(id, novo) {
+    return travar(async () => {
+      const { error } = await supabase.rpc('mudar_estado_item', { p_item: id, p_novo: novo });
+      if (error) setErro(error.message);
+      else carregar();
+    });
   }
 
   // Resumo de cada mesa com conta aberta: total registrado e o que o garçom já pode entregar.
@@ -98,29 +102,33 @@ export default function Mesas() {
   // Cada grupo (bebidas, espetos, cozinha) tem o seu botão: entrega o que já
   // está pronto naquele grupo (e as bebidas, que não passam por preparo).
   // Uma só chamada: ou entrega tudo, ou não muda nada.
-  async function entregar(grupo) {
-    const ids = itensEntregaveis(grupo.itens).map((i) => i.id);
-    if (!ids.length) return;
-    const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: 'entregue' });
-    setErro(error ? error.message : null);
-    carregar();
+  function entregar(grupo) {
+    return travar(async () => {
+      const ids = itensEntregaveis(grupo.itens).map((i) => i.id);
+      if (!ids.length) return;
+      const { error } = await supabase.rpc('mudar_estado_itens', { p_itens: ids, p_novo: 'entregue' });
+      setErro(error ? error.message : null);
+      carregar();
+    });
   }
 
   // --- Trocar a conta de mesa -------------------------------------------------
   const mesaNova = troca ? Number(troca.valor) : NaN;
   const mesaNovaOk = mesaValida(mesaNova) && mesaNova !== mesa;
 
-  async function confirmarTroca() {
-    const { error } = await supabase.rpc('trocar_mesa', { p_conta: conta.id, p_mesa: mesaNova });
-    if (error) {
-      setErro(error.message);
-      setTroca({ ...troca, confirmando: false });
-      return;
-    }
-    setErro(null);
-    setAviso(`Conta passada da mesa ${mesa} para a mesa ${mesaNova}.`);
-    setTroca(null);
-    setMesa(mesaNova);
+  function confirmarTroca() {
+    return travar(async () => {
+      const { error } = await supabase.rpc('trocar_mesa', { p_conta: conta.id, p_mesa: mesaNova });
+      if (error) {
+        setErro(error.message);
+        setTroca({ ...troca, confirmando: false });
+        return;
+      }
+      setErro(null);
+      setAviso(`Conta passada da mesa ${mesa} para a mesa ${mesaNova}.`);
+      setTroca(null);
+      setMesa(mesaNova);
+    });
   }
 
   // --- Mover um item para outra pessoa ----------------------------------------
@@ -129,20 +137,22 @@ export default function Mesas() {
   const nomeLongo = pessoaNova.length > 60;
   const nomeIgual = itemMover ? (itemMover.pessoa ?? '') === pessoaNova : false;
 
-  async function confirmarMover() {
-    const { error } = await supabase.rpc('mudar_pessoa_item', {
-      p_item: mover.id,
-      p_pessoa: pessoaNova,
+  function confirmarMover() {
+    return travar(async () => {
+      const { error } = await supabase.rpc('mudar_pessoa_item', {
+        p_item: mover.id,
+        p_pessoa: pessoaNova,
+      });
+      if (error) {
+        setErro(error.message);
+        setMover({ ...mover, confirmando: false });
+        return;
+      }
+      setErro(null);
+      setAviso('Item movido.');
+      setMover(null);
+      carregar();
     });
-    if (error) {
-      setErro(error.message);
-      setMover({ ...mover, confirmando: false });
-      return;
-    }
-    setErro(null);
-    setAviso('Item movido.');
-    setMover(null);
-    carregar();
   }
 
   return (
@@ -225,7 +235,7 @@ export default function Mesas() {
                 <>
                   <p><b>Tem certeza?</b> A conta inteira da mesa {mesa} vai para a mesa {mesaNova}.</p>
                   <div className="linha">
-                    <button onClick={confirmarTroca}>Sim, trocar</button>
+                    <button onClick={confirmarTroca} disabled={ocupado}>Sim, trocar</button>
                     <button className="sec" onClick={() => setTroca({ ...troca, confirmando: false })}>Voltar</button>
                   </div>
                 </>
@@ -238,7 +248,7 @@ export default function Mesas() {
               {grupos.map((g) => {
                 const qtd = itensEntregaveis(g.itens).reduce((soma, i) => soma + i.quantidade, 0);
                 return (
-                  <button key={g.id} className="entregar" onClick={() => entregar(g)} disabled={!qtd}>
+                  <button key={g.id} className="entregar" onClick={() => entregar(g)} disabled={!qtd || ocupado}>
                     <small>Entregue</small>
                     <b>{g.rotulo}</b>
                     <span className="n">{qtd}</span>
@@ -269,7 +279,7 @@ export default function Mesas() {
                         </button>
                       )}
                       {['novo', 'em_preparo', 'pronto'].includes(i.estado) && (
-                        <button className="perigo" onClick={() => mudar(i.id, 'cancelado')}>Cancelar</button>
+                        <button className="perigo" onClick={() => mudar(i.id, 'cancelado')} disabled={ocupado}>Cancelar</button>
                       )}
                     </div>
                   </div>
@@ -304,7 +314,7 @@ export default function Mesas() {
                             <b>{i.pessoa || 'sem nome'}</b> para <b>{pessoaNova || 'sem nome'}</b>.
                           </p>
                           <div className="linha">
-                            <button onClick={confirmarMover}>Sim, mover</button>
+                            <button onClick={confirmarMover} disabled={ocupado}>Sim, mover</button>
                             <button className="sec" onClick={() => setMover({ ...mover, confirmando: false })}>Voltar</button>
                           </div>
                         </>

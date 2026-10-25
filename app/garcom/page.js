@@ -6,6 +6,8 @@ import { lerMesaPessoa } from '../../lib/mesas';
 import { validarPedido, formatarReais } from '../../lib/conta';
 import { adicionarProduto, erroDasLinhas, itensParaEnvio } from '../../lib/pedido';
 import { normalizar } from '../../lib/setor';
+import { criarGuardaChave } from '../../lib/chave';
+import { useTrava } from '../componentes/useTrava';
 
 // Tela do garçom. O cardápio (esquerda) e o pedido do cliente (painel à direita,
 // ou folha que sobe no celular) ficam separados de propósito: assim nunca se
@@ -19,7 +21,8 @@ export default function Garcom() {
   const [obsAbertas, setObsAbertas] = useState([]); // chaves das linhas com observação aberta
   const [painelAberto, setPainelAberto] = useState(false); // folha do pedido (celular)
   const [msg, setMsg] = useState(null);
-  const [enviando, setEnviando] = useState(false);
+  const { ocupado: enviando, travar } = useTrava();
+  const chaves = useRef(criarGuardaChave());
   const contador = useRef(0);
 
   useEffect(() => {
@@ -83,19 +86,29 @@ export default function Garcom() {
   const pessoa = lido.erro ? '' : lido.pessoa ?? '';
   const rotuloMesa = mesa ? `Mesa ${mesa}${pessoa ? ` / ${pessoa}` : ''}` : 'Sem mesa';
 
-  async function enviar() {
-    if (lido.erro) return setMsg({ tipo: 'erro', texto: lido.erro });
-    const itens = itensParaEnvio(linhas, pessoa);
-    const erro = validarPedido(mesa, itens) || erroDasLinhas(linhas);
-    if (erro) return setMsg({ tipo: 'erro', texto: erro });
-    setEnviando(true);
-    const { error } = await supabase.rpc('criar_pedido', { p_mesa: mesa, p_itens: itens });
-    setEnviando(false);
-    if (error) return setMsg({ tipo: 'erro', texto: error.message });
-    setMsg({ tipo: 'ok', texto: `Pedido da mesa ${mesa}${pessoa ? ` (${pessoa})` : ''} enviado.` });
-    setLinhas([]);
-    setObsAbertas([]);
-    setPainelAberto(false);
+  function enviar() {
+    return travar(async () => {
+      if (lido.erro) return setMsg({ tipo: 'erro', texto: lido.erro });
+      const itens = itensParaEnvio(linhas, pessoa);
+      const erro = validarPedido(mesa, itens) || erroDasLinhas(linhas);
+      if (erro) return setMsg({ tipo: 'erro', texto: erro });
+      // Mesma chave enquanto o envio for o mesmo: se a internet cair depois de o banco
+      // gravar e o garçom tocar de novo, o pedido não é criado em dobro.
+      const chave = chaves.current.para(JSON.stringify([mesa, itens]));
+      const { error } = await supabase.rpc('criar_pedido', { p_mesa: mesa, p_itens: itens, p_chave: chave });
+      if (error) {
+        const rede = /fetch|network|failed/i.test(error.message);
+        return setMsg({
+          tipo: 'erro',
+          texto: rede ? 'Sem conexão. O pedido não foi confirmado: toque em Enviar de novo (não será duplicado).' : error.message,
+        });
+      }
+      chaves.current.liberar();
+      setMsg({ tipo: 'ok', texto: `Pedido da mesa ${mesa}${pessoa ? ` (${pessoa})` : ''} enviado.` });
+      setLinhas([]);
+      setObsAbertas([]);
+      setPainelAberto(false);
+    });
   }
 
   const podeEnviar = !enviando && linhas.length > 0 && mesa !== null;

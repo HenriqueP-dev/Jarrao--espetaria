@@ -1,7 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase, configurado } from '../../lib/supabase';
+import { criarGuardaChave } from '../../lib/chave';
+import { useTrava } from '../componentes/useTrava';
 import { ROTULOS } from '../../lib/estados';
 import { formatarReais } from '../../lib/conta';
 import {
@@ -21,6 +23,8 @@ export default function Caixa() {
   const [valor, setValor] = useState('');
   const [erro, setErro] = useState(null);
   const [aviso, setAviso] = useState(null);
+  const { ocupado, travar } = useTrava();
+  const chaves = useRef(criarGuardaChave());
 
   const carregar = useCallback(async () => {
     const { data: abertas, error } = await supabase
@@ -74,31 +78,45 @@ export default function Caixa() {
     setValor((saldo(c.itens, c.pagamentos) / 100).toFixed(2));
   }
 
-  async function registrarPagamento() {
-    const centavos = parseReais(valor);
-    const msg = validarPagamento(conta.itens, conta.pagamentos, forma, centavos);
-    if (msg) return setErro(msg);
+  function registrarPagamento() {
+    return travar(async () => {
+      const centavos = parseReais(valor);
+      const msg = validarPagamento(conta.itens, conta.pagamentos, forma, centavos);
+      if (msg) return setErro(msg);
 
-    const { error } = await supabase.rpc('registrar_pagamento', {
-      p_conta: conta.id,
-      p_forma: forma,
-      p_valor: centavos,
+      // Mesma chave enquanto for "o mesmo" pagamento (conta, forma e valor) que ainda não
+      // deu certo: repetir o envio não registra duas vezes (migration 012).
+      const chave = chaves.current.para(`${conta.id}|${forma}|${centavos}`);
+      const { error } = await supabase.rpc('registrar_pagamento', {
+        p_conta: conta.id,
+        p_forma: forma,
+        p_valor: centavos,
+        p_chave: chave,
+      });
+      if (error) {
+        const rede = /fetch|network|failed/i.test(error.message);
+        return setErro(
+          rede ? 'Sem conexão. Confira o extrato e toque de novo se o pagamento não aparecer (não será duplicado).' : error.message
+        );
+      }
+      chaves.current.liberar();
+      setAviso(`Pagamento de ${formatarReais(centavos)} registrado.`);
+      setErro(null);
+      // Sugere o novo saldo restante para o próximo pagamento.
+      setValor(((saldo(conta.itens, conta.pagamentos) - centavos) / 100).toFixed(2));
+      carregar();
     });
-    if (error) return setErro(error.message);
-    setAviso(`Pagamento de ${formatarReais(centavos)} registrado.`);
-    setErro(null);
-    // Sugere o novo saldo restante para o próximo pagamento.
-    setValor(((saldo(conta.itens, conta.pagamentos) - centavos) / 100).toFixed(2));
-    carregar();
   }
 
-  async function fecharConta() {
-    const { error } = await supabase.rpc('fechar_conta', { p_conta: conta.id });
-    if (error) return setErro(error.message);
-    setAviso(`Conta da mesa ${conta.mesa_numero} fechada.`);
-    setErro(null);
-    setSelecionada(null);
-    carregar();
+  function fecharConta() {
+    return travar(async () => {
+      const { error } = await supabase.rpc('fechar_conta', { p_conta: conta.id });
+      if (error) return setErro(error.message);
+      setAviso(`Conta da mesa ${conta.mesa_numero} fechada.`);
+      setErro(null);
+      setSelecionada(null);
+      carregar();
+    });
   }
 
   const motivo = conta ? motivoNaoFechar(conta.itens, conta.pagamentos) : null;
@@ -187,12 +205,14 @@ export default function Caixa() {
                     aria-label="Valor recebido"
                     style={{ width: 120 }}
                   />
-                  <button onClick={registrarPagamento}>Registrar pagamento</button>
+                  <button onClick={registrarPagamento} disabled={ocupado}>
+                    {ocupado ? 'Registrando…' : 'Registrar pagamento'}
+                  </button>
                 </div>
                 <p className="mudo">Registro manual: não confirma a operadora do cartão.</p>
               </div>
 
-              <button className="grande" onClick={fecharConta} disabled={Boolean(motivo)}>
+              <button className="grande" onClick={fecharConta} disabled={Boolean(motivo) || ocupado}>
                 Fechar conta
               </button>
               {motivo && <p className="mudo">{motivo}</p>}

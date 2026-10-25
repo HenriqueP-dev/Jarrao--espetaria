@@ -18,7 +18,7 @@ Next.js (telas) + Supabase (banco PostgreSQL e tempo real) + Vercel (hospedagem 
 
 ## Como rodar
 1. Crie um projeto gratuito em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql`, `supabase/migrations/007_relatorio_vendas.sql`, `supabase/migrations/008_login_permissoes.sql`, `supabase/migrations/009_corrige_trava_do_login.sql`, `supabase/migrations/010_cadastro_de_produtos.sql` e `supabase/migrations/011_estoque.sql`.
+2. No **SQL Editor**, rode, nesta ordem: `supabase/migrations/001_fluxo_principal.sql`, `supabase/seed.sql`, `supabase/migrations/002_caixa.sql`, `supabase/migrations/003_correcoes.sql`, `supabase/migrations/004_cardapio_real.sql`, `supabase/migrations/005_mesas_livres.sql`, `supabase/migrations/006_cancelamento_lote_mesa.sql`, `supabase/migrations/007_relatorio_vendas.sql`, `supabase/migrations/008_login_permissoes.sql`, `supabase/migrations/009_corrige_trava_do_login.sql`, `supabase/migrations/010_cadastro_de_produtos.sql`, `supabase/migrations/011_estoque.sql` e `supabase/migrations/012_idempotencia_e_tetos.sql`.
 3. Copie `.env.example` para `.env.local` e preencha a URL e a chave `anon` (Project Settings → API).
 4. Instale e rode:
    ```
