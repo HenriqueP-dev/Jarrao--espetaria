@@ -2,6 +2,14 @@
 
 Guia para colocar o sistema no ar. **Nada disso foi feito ainda**: publicar, contratar planos e mexer no domínio dependem de autorização do dono do projeto.
 
+## Estado atual (publicado em 25/10/2026, demonstração)
+- **Site:** https://jarrao.henriquep.online (também https://jarrao-espetaria.vercel.app). Vercel Hobby (grátis, só uso pessoal) ligada ao repositório do GitHub: cada envio à branch `main` publica sozinho.
+- **Variáveis na Vercel (Produção):** `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Cuidado: o tradutor automático do Chrome já traduziu o nome de uma variável; desligue a tradução ao mexer no painel.
+- **DNS (Hostinger):** `CNAME jarrao → cname.vercel-dns.com`, criado pelo conector da Hostinger. O domínio `henriquep.online` não tem hospedagem na Hostinger (só o domínio); o resto do domínio ficou como estava.
+- **Conferido:** HTTPS ativo e cabeçalhos de segurança (CSP, HSTS, anti-iframe) presentes no domínio próprio.
+- **Pendente:** Site URL e Redirect URLs no Supabase (Authentication → URL Configuration); teste do login pelo dono neste endereço; decisão de custos antes de uso real (plano Supabase Free pausa após 7 dias sem uso e não tem backup diário).
+- O conector da Vercel não conseguiu acesso à conta pessoal (erro 403 mesmo após aprovar); a Vercel foi configurada pelo painel.
+
 ## Antes de publicar (checklist)
 1. Cadastro livre desligado: Supabase → Authentication → Sign In / Providers → desmarcar "Allow new users to sign up".
 2. Trava do login ligada e as contas da equipe testadas (ver `docs/DECISOES.md`, "Login e permissões").
